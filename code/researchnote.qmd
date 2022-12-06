@@ -1,0 +1,23 @@
+---
+title: "researchnote"
+format: html
+editor: visual
+---
+
+```{r setup,include = FALSE,echo=FALSE}
+set.seed(1206)
+options (warn = -1)
+setwd("/Users/zhumeng/Documents/GitHub/Fear_Trust/code")
+# packbirth loading
+library(pacman)
+p_load("rio",
+       "here",
+       "tidyverse",
+       "haven")
+ 
+```
+
+# data loda
+```{r dataloda}
+cbs2 <- read.dta("../data/cbs2")
+```
