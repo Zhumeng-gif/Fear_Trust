@@ -7,7 +7,7 @@ editor: visual
 ```{r setup,include = FALSE,echo=FALSE}
 set.seed(1206)
 options (warn = -1)
-setwd("/Users/zhumeng/Documents/GitHub/Fear_Trust/code")
+setwd("/Users/zhumeng/Desktop/project/Fear_Trust/code")
 # packbirth loading
 library(pacman)
 p_load("rio",
@@ -18,6 +18,34 @@ p_load("rio",
 ```
 
 # data loda
+
 ```{r dataloda}
-cbs2 <- read.dta("../data/cbs2")
+cbs31 <- read_dta("../data/cbs31.dta")
+cbs31$income <- as.numeric(cbs31$income)
+cbs31_occ <- cbs31 %>%
+  select(.,SE22,occ,SEX,income) %>%
+  filter(SE22 ==3)
+
+cbs32 <- read_sav("../data/cbs32.sav", encoding="latin1")
+cbs33 <- read_sav("../data/ABS3w.CN.sav")
+abs3_cn <- read_sav("../data/ABS3 merge20210506.sav") %>%
+  filter(country == 4)
+#cbs32/33 一毛一样，abs3_cn问题也是的，cbs31苏老师一开始发的数据中比其他三个都多了se8（occ），这一点很奇怪，因为在abs里面，并没有se8
+
+
+abs1_cn <- read_sav("../data/W1 Merged Data/Wave.1_Data/Mainland China/Mainland v4.2.sav")
+cbs1 <- read_dta("../data/cbs1.dta") 
+
+cbs1_occ <- cbs1 %>%
+  select(.,v82,v98,v100,v101,v111) %>%
+  filter(v101 ==6)
+
+  filter(.,!(v100 == 997)) #997没有回答
+
+cbs2 <- read_dta("../data/cbs2.dta")
+abs2_cn <- read_sav("../data/Wave2_20170724.sav") %>%
+  filter(country == 4)
+
+
+
 ```
