@@ -13,39 +13,142 @@ library(pacman)
 p_load("rio",
        "here",
        "tidyverse",
-       "haven")
+       "haven",
+       "car")
  
 ```
 
-# data loda
+# DataClean
 
-```{r dataloda}
-cbs31 <- read_dta("../data/cbs31.dta")
-cbs31$income <- as.numeric(cbs31$income)
-cbs31_occ <- cbs31 %>%
-  select(.,SE22,occ,SEX,income) %>%
-  filter(SE22 ==3)
+## cbs1
+```{r cbs2003}
+cbs1_raw<- read_dta("../data/cbs1.dta") 
 
-cbs32 <- read_sav("../data/cbs32.sav", encoding="latin1")
-cbs33 <- read_sav("../data/ABS3w.CN.sav")
-abs3_cn <- read_sav("../data/ABS3 merge20210506.sav") %>%
-  filter(country == 4)
-#cbs32/33 一毛一样，abs3_cn问题也是的，cbs31苏老师一开始发的数据中比其他三个都多了se8（occ），这一点很奇怪，因为在abs里面，并没有se8
-
-
-abs1_cn <- read_sav("../data/W1 Merged Data/Wave.1_Data/Mainland China/Mainland v4.2.sav")
-cbs1 <- read_dta("../data/cbs1.dta") 
-
-cbs1_occ <- cbs1 %>%
-  select(.,v82,v98,v100,v101,v111) %>%
-  filter(v101 ==6)
-
-  filter(.,!(v100 == 997)) #997没有回答
-
-cbs2 <- read_dta("../data/cbs2.dta")
-abs2_cn <- read_sav("../data/Wave2_20170724.sav") %>%
-  filter(country == 4)
-
-
+cbs1 <- cbs1_raw %>%
+  select(.,q1,q2,province_id,v82,v83,v2,v84,v111,v110,v109,v101,v73b)
+#filter(.,!(v100 == 997)) #997没有回答
+cbs1$female <- cbs1$v82 - 1
+cbs1$age <- cbs1$v83
+cbs1$hukouRural <- Recode(cbs1$v2, "2 = 0; c(3,7) = NA") # 农村户口为1，非农为0
+cbs1$race <- Recode(cbs1$v84, "2:33 = 0; c(0,98) = NA") #1:han 0:others
+cbs1$party <- Recode(cbs1$v111,"1 = 0; 2:4 =1") 
+cbs1$edu <- cbs1$v110
+cbs1$eduyear <- cbs1$v109
+cbs1$occ <- Recode(cbs1$v101,"0:3 = 1; c(4,5,6,8) = 0; c(97,99,7,9) = NA")
+#这里需要注意97和99数量很大，特别是97有1547。然后就是7/9在qs中分别代表不使用/不回答。如果7/9足以表明na，那97/99也就是多余的了。
+cbs1$trust_gover <- Recode(cbs1$v73b,"5:6 = 1;0:4 = 0; 8:9 = NA") 
 
 ```
+
+## cgss2010
+```{r cgss1010}
+cgss2010_raw <- read_dta("../data/CGSS2010/cgss2010.dta")
+cgss2010_raw[cgss2010_raw < 0] <- NA
+cgss2010 <- cgss2010_raw %>%
+  select(.,id,s41,a2,a3a,s5,a18,a4,a10,a8a,a62,a59j,a59k,d302)
+cgss2010$rural <- cgss2010$s5 - 1 #urban:1
+cgss2010$female <- cgss2010$a2 - 1
+cgss2010$age <- 2010 - cgss2010$a3a
+cgss2010$hukouRural <- Recode(cgss2010$a18,"2:5 = 0; c(6,7) = NA")
+cgss2010$race <- if_else(cgss2010$a4== 1, 1, 0)
+cgss2010$party <- if_else(cgss2010$a10 %in% c(1, 3), 1, 0)
+cgss2010$incomePer <- cgss2010$a8a
+cgss2010$incomePer[cgss2010$incomePer >= 9999990] <- NA # some suspicious data having 9999992, which should not be that "accurate." Thus all coding to missing
+cgss2010$incomeFam <- cgss2010$a62
+cgss2010$incomeFam[cgss2010$incomeFam >= 9999990] <- NA
+cgss2010$occ <- cgss2010$a59k
+cgss2010$occ[cgss2010$a59j == 1] <- 1 
+#因为在a59j中党政机关在a59k里面都为na
+cgss2010$occ <- if_else(cgss2010$occ %in% c(1,2), 1, 0)
+cgss2010$trust_gover <- if_else(cgss2010$d302 %in% c(4,5), 1, 0)
+```
+
+
+## pku2008
+```{r pku2008}
+pku2008_raw <- read_dta("../data/pku2008/pku2008.dta")
+pku2008 <- pku2008_raw %>%
+  select(.,caseid,PSU,gender,a1,a4,a4a,a5,a8,c15_a,k12,k12a,k13,k5,c6a)
+pku2008$age <- 2008 - pku2008$a1
+pku2008$female <- pku2008$gender - 1
+pku2008$edu <- pku2008$a4a
+pku2008$eduyear <- pku2008$a4
+pku2008$hukouRural <- Recode(pku2008$a5,"5 = 0; 9 = NA")
+pku2008$race <- Recode(pku2008$a8,"1 = 1; 7 = 0; 9 = NA")
+pku2008$party <- Recode(pku2008$c15_a,"0 = 0; c(1,3) = 1; 9 = NA")
+pku2008$incomeFam <- ifelse(pku2008$k12 == 1, pku2008$k13, pku2008$k12a)
+pku2008$incomeFam <- Recode(pku2008$incomeFam,"c(8,9,97) = NA")
+pku2008$occ <- Recode(pku2008$k5,"c(0,4,5,7,8,10,77,97) = 0; c(1,2,3,6,9) = 1; c(96,99) = NA")
+pku2008$trust_gover <- Recode(pku2008$c6a,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
+
+```
+
+## pku2009
+```{r pku2009}
+pku2009_raw <- read_dta("../data/pku2009/pku2009.dta")
+pku2009 <- pku2009_raw %>%
+  select(.,number,PSU,gender,a1,a4,a4a,a5,a8,c15_a,c15_b,c15_c,k12,k12a,k13,k5,c6a)
+pku2009$age <- 2009 - pku2009$a1
+pku2009$female <- pku2009$gender - 1
+pku2009$edu <- pku2009$a4a
+pku2009$eduyear <- pku2009$a4
+pku2009$hukouRural <- Recode(pku2009$a5,"5 = 0") #农业户口为1，非农为0
+pku2009$race <- Recode(pku2009$a8,"1 = 1; 7 = 0; c(8,9)= NA")
+pku2009$party <- Recode(pku2009$c15_a,"5 = 0; c(1,3) = 1; c(9,97) = NA")
+pku2009$party[pku2009$c15_b %in% c(1,3)] <- 1
+pku2009$party[pku2009$c15_c %in% c(1,3)] <- 1 #这里需要注意的是，由于问题是曾经是/是，属于共青团的人数特别多，因此最终群众只有105，党员/共青团/民主党派一共有1000人
+pku2009$incomeFam <- ifelse(pku2009$k12 ==1,pku2009$k13,pku2009$k12a)
+pku2009$incomeFam <- Recode(pku2009$incomeFam,"c(8,9) = NA")
+pku2009$occ <- Recode(pku2009$k5,"c(0,4,5,6,7,8,10,77,97) = 0; c(1,2,3,6,9) = 1; c(96,99) = NA")
+pku2009$trust_gover <- Recode(pku2009$c6a,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
+```
+
+
+## css2006
+```{r css2006}
+css2006_raw <- read_sav("../data/CSS/Data/CSS2006.sav")
+css2006 <- css2006_raw %>%
+  select(.,serial,qs2a,RURAL1,qa01,qa02,qa04,qa06,qa08a,qa10,qb4a,qb4c,qe05_06)
+# RURAL1(1:rural 0:urban)
+# qa08a最大只能是0-9，10/11要code为na
+css2006$female <- css2006$qa01 - 1
+css2006$hukouRural <- Recode(css2006$qa04,"2 = 0; 3 = NA")#农业户口为1；非农为0
+css2006$edu <- css2006$qa08a
+css2006$eduyear <- css2006$qa10
+css2006$party <- Recode(css2006$qa06,"1:3 = 1; 4 = 0")
+
+css2006$occ <- Recode(css2006$qb4a,"1:4 = 1; 9 = 1; 5:8 = 0; c(11,12) = 0")
+css2006$occ[css2006$occ == 10 & css2006$qb4c %in% c(7, 8)] <- 1
+css2006$occ[css2006$occ == 10 & css2006$qb4c == 11] <- 1
+css2006$trust_gover <- Recode(css2006$qe05_06,"c(3,4) = 1; c(1,2,5) = 0")
+
+```
+
+## css2017
+```{r css2017}
+css2017_raw <- read_sav("../data/CSS/Data/CSS2017.sav")
+css2017_raw[css2017_raw < 0] <- NA
+css2017 <- css2017_raw %>%
+  select(.,ID,RA1c,RA1d,RA1e,A2,A3,A4a,C5a,C6a_a,B3a,B4a,F1a2_1)
+# RURAL1(1:rural 0:urban)
+# qa08a最大只能是0-9，10/11要code为na
+css2017$female <- css2017$RA1c - 1
+css2017$age <- 2017 - css2017$RA1d
+css2017$hukouRural <- Recode(css2017$A4a,"c(2,3) = 0; 4 = NA")#农业户口为1；非农为0
+css2017$edu <- css2017$RA1e
+css2017$race <- Recode(css2017$A2,"2:8 = 0")
+css2017$party <- Recode(css2017$A3,"1:3 = 1; c(4,5) = 0")
+css2017$incomPer <- css2017$C5a
+css2017$incomFam <- css2017$C6a_a
+css2017$occ <- Recode(css2017$B3a,"c(3,4) = 0")
+css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(11,10,9,7,5)] <- 0
+css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(4,3,2,1)] <- 1
+css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(11,10,9,8,7,6,5)] <- 0
+css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(4,3,2,1)] <- 1
+css2017$trust_gover <- Recode(css2017$F1a2_1,"c(3,4) = 1; c(1,2,8) = 0")
+
+```
+
+
+
+
