@@ -20,23 +20,142 @@ p_load("rio",
 
 # DataClean
 
-## cbs1
-```{r cbs2003}
-cbs1_raw<- read_dta("../data/cbs1.dta") 
+## cbs2002
+```{r cbs2002}
+cbs2002_raw<- read_dta("../data/cbs/cbs2002.dta") 
 
-cbs1 <- cbs1_raw %>%
-  select(.,q1,q2,province_id,v82,v83,v2,v84,v111,v110,v109,v101,v73b)
+cbs2002 <- cbs2002_raw %>%
+  select(.,q1,q2,province_id,v82,v83,v2,v84,v111,v110,v109,v101,v73b,v73c)
+
+# area
+cbs2002$province <- as.character(cbs2002$province_id) %>%
+  dplyr::recode(
+         "11" = "北京市", 
+         "12" = "天津市", 
+         "13" = "河北省", 
+         "14" = "山西省", 
+         "15" = "内蒙古自治区", 
+         "21" = "辽宁省", 
+         "22" = "吉林省", 
+         "23" = "黑龙江省", 
+         "31" = "上海市", 
+         "32" = "江苏省", 
+         "33" = "浙江省", 
+         "34" = "安徽省", 
+         "35" = "福建省", 
+         "36" = "江西省", 
+         "37" = "山东省", 
+         "41" = "河南省", 
+         "42" = "湖北省", 
+         "43" = "湖南省", 
+         "44" = "广东省", 
+         "45" = "广西壮族自治区", 
+         "46" = "海南省", 
+         "50" = "重庆市", 
+         "51" = "四川省", 
+         "52" = "贵州省", 
+         "53" = "云南省", 
+         "54" = "西藏自治区", 
+         "61" = "陕西省", 
+         "62" = "甘肃省", 
+         "63" = "青海省", 
+         "64" = "宁夏回族自治区", 
+         "65" = "新疆维吾尔自治区")
+
 #filter(.,!(v100 == 997)) #997没有回答
-cbs1$female <- cbs1$v82 - 1
-cbs1$age <- cbs1$v83
-cbs1$hukouRural <- Recode(cbs1$v2, "2 = 0; c(3,7) = NA") # 农村户口为1，非农为0
-cbs1$race <- Recode(cbs1$v84, "2:33 = 0; c(0,98) = NA") #1:han 0:others
-cbs1$party <- Recode(cbs1$v111,"1 = 0; 2:4 =1") 
-cbs1$edu <- cbs1$v110
-cbs1$eduyear <- cbs1$v109
-cbs1$occ <- Recode(cbs1$v101,"0:3 = 1; c(4,5,6,8) = 0; c(97,99,7,9) = NA")
+cbs2002$female <- cbs2002$v82 - 1
+cbs2002$age <- cbs2002$v83
+cbs2002$hukouRural <- Recode(cbs2002$v2, "2 = 0; c(3,7) = NA") # 农村户口为1，非农为0
+cbs2002$race <- Recode(cbs2002$v84, "2:33 = 0; c(0,98) = NA") #1:han 0:others
+cbs2002$party <- Recode(cbs2002$v111,"1 = 0; 2:4 =1") 
+cbs2002$edu <- cbs2002$v110
+cbs2002$eduyear <- cbs2002$v109
+cbs2002$occ <- Recode(cbs2002$v101,"0:2 = 1; c(3,4,5,6,8) = 0; c(97,99,7,9) = NA")
 #这里需要注意97和99数量很大，特别是97有1547。然后就是7/9在qs中分别代表不使用/不回答。如果7/9足以表明na，那97/99也就是多余的了。
-cbs1$trust_gover <- Recode(cbs1$v73b,"5:6 = 1;0:4 = 0; 8:9 = NA") 
+cbs2002$trust_gover <- Recode(cbs2002$v73b,"5:6 = 1; 0:4 = 0; 8:9 = NA") 
+cbs2002$trust_local <- Recode(cbs2002$v73c,"5:6 = 1; 0:4 = 0; 8:9 = NA") 
+write.csv(cbs2002,file = "../dataclean/cbs2002.csv")
+```
+
+
+## cbs2014
+```{r cbs2014}
+cbs2014_raw <- read_sav("../data/cbs/cbs2014.sav")
+cbs2014_raw[cbs2014_raw < 0] <- NA
+cbs2014 <- cbs2014_raw %>%
+  select(.,CASEID,Proid,A1,A2,A3A,A4,SE1,SE1A,SE9,SE4,SE3,SE2,E1B,E1H)
+cbs2014$province <- as.character(cbs2014$Proid) %>%
+  dplyr::recode(
+         "11" = "北京市", 
+         "12" = "天津市", 
+         "13" = "河北省", 
+         "14" = "山西省", 
+         "15" = "内蒙古自治区", 
+         "21" = "辽宁省", 
+         "22" = "吉林省", 
+         "23" = "黑龙江省", 
+         "31" = "上海市", 
+         "32" = "江苏省", 
+         "33" = "浙江省", 
+         "34" = "安徽省", 
+         "35" = "福建省", 
+         "36" = "江西省", 
+         "37" = "山东省", 
+         "41" = "河南省", 
+         "42" = "湖北省", 
+         "43" = "湖南省", 
+         "44" = "广东省", 
+         "45" = "广西壮族自治区", 
+         "46" = "海南省", 
+         "50" = "重庆市", 
+         "51" = "四川省", 
+         "52" = "贵州省", 
+         "53" = "云南省", 
+         "54" = "西藏自治区", 
+         "61" = "陕西省", 
+         "62" = "甘肃省", 
+         "63" = "青海省", 
+         "64" = "宁夏回族自治区", 
+         "65" = "新疆维吾尔自治区")
+
+cbs2014$female <- cbs2014$A1 - 1
+cbs2014$hukouRural <- Recode(cbs2014$A2,"2 = 0; c(3,9) = NA")
+cbs2014$age <- cbs2014$A3A
+cbs2014$race <- Recode(cbs2014$A4,"2 = 0; 8:9 = NA")
+cbs2014$edu <- cbs2014$SE1
+cbs2014$eduyear <- cbs2014$SE1A
+cbs2014$party <- Recode(cbs2014$SE9,"2:4 = 1; 1 =0; 9 = NA")
+cbs2014$incomeFam <- cbs2014$SE4
+cbs2014$incomeFam[cbs2014$incomeFam %in% c(8,9)] <- NA
+cbs2014$occ <- Recode(cbs2014$SE3,"c(1,2,3,6) = 1; c(4,5,7,8,9,10) = 0; c(98,99) = NA")
+cbs2014$occ[cbs2014$occ == 11 & cbs2014$SE2 %in% c(1,2,3,5,6,10,91,92,93,94,96)] <- 0
+#这里code时有个疑问：先判断工作单位性质，其中的其他根据工作类型来判断，但是SE2中的93/94分别表示退休和下岗/找工作，这两个选项目前编码进体制外。另外，我看原数据“体制内外”将集体企业也编码进体制外，因此修订了我的编码，但这一点需要与老师商榷。原数据将SE2中99（不回答）也编码为体制外，这一点有待商榷。
+cbs2014$trust_gover <- Recode(cbs2014$E1B,"5:6 = 1; 1:4 = 0; 7:9 = NA") 
+cbs2014$trust_local <- Recode(cbs2014$E1H,"5:6 = 1; 1:4 = 0; 7:9 = NA") 
+write.csv(cbs2014,file = "../dataclean/cbs2014.csv")
+```
+
+## cbs2019
+```{r cbs2019}
+cbs2019_raw <- read_sav("../data/cbs/cbs2019.sav")
+
+cbs2019 <- cbs2019_raw %>%
+  select(.,"个案编号",SITEPRO,A1,A2,A4A,A5,SE1,SE1A,SE13,SE5,E4B,E4H) %>%
+  rename("province" = "SITEPRO")
+cbs2019$female <- cbs2019$A1 - 1
+cbs2019$hukouRural <- Recode(cbs2019$A2,"c(2,3) = 0; c(1,4) = 1;c(5,9) = NA")
+cbs2019$age <- cbs2019$A4A
+cbs2019$race <- Recode(cbs2019$A5,"2 = 0")
+cbs2019$edu <- cbs2019$SE1
+cbs2019$eduyear <- cbs2019$SE1A
+cbs2019$party <- Recode(cbs2019$SE13,"2:4 = 1; 1 =0")
+#cbs2019$incomeFam <- cbs2019$SE6 #有汉字表示，如果需要，则重新code
+cbs2019$SE5 <- as.factor(cbs2019$SE5)
+cbs2019$occ <- Recode(cbs2019$SE5,"c(1,2,3,6) = 1; c(4,5,7,8,9,10,11) = 0; 24 = NA")
+
+cbs2019$trust_gover <- Recode(cbs2019$E4B,"5:6 = 1; 1:4 = 0") 
+cbs2019$trust_local <- Recode(cbs2019$E4H,"5:6 = 1; 1:4 = 0")
+write.csv(cbs2019,file = "../dataclean/cbs2019.csv")
 
 ```
 
@@ -45,7 +164,12 @@ cbs1$trust_gover <- Recode(cbs1$v73b,"5:6 = 1;0:4 = 0; 8:9 = NA")
 cgss2010_raw <- read_dta("../data/CGSS2010/cgss2010.dta")
 cgss2010_raw[cgss2010_raw < 0] <- NA
 cgss2010 <- cgss2010_raw %>%
-  select(.,id,s41,a2,a3a,s5,a18,a4,a10,a8a,a62,a59j,a59k,d302)
+  select(.,id,s41,a2,a3a,s5,a18,a4,a10,a8a,a62,a59j,a59k,d302,d303)
+# area
+cgss2010$province <- as.character(cgss2010$s41) %>%
+  dplyr::recode("110000" = "北京市", "120000" = "天津市", "130000" = "河北省", "140000" = "山西省", "150000" = "内蒙古自治区", "210000" = "辽宁省", "220000" = "吉林省", "230000" = "黑龙江省", "310000" = "上海市", "320000" = "江苏省", "330000" = "浙江省", "340000" = "安徽省", "350000" = "福建省", "360000" = "江西省", "370000" = "山东省", "410000" = "河南省", "420000" = "湖北省", "430000" = "湖南省", "440000" = "广东省", "450000" = "广西壮族自治区", "460000" = "海南省", "5e+05" = "重庆市", "510000" = "四川省", "520000" = "贵州省", "530000" = "云南省", "540000" = "西藏自治区", "610000" = "陕西省", "620000" = "甘肃省", "630000" = "青海省", "640000" = "宁夏回族自治区", "650000" = "新疆维吾尔自治区")
+
+
 cgss2010$rural <- cgss2010$s5 - 1 #urban:1
 cgss2010$female <- cgss2010$a2 - 1
 cgss2010$age <- 2010 - cgss2010$a3a
@@ -59,8 +183,11 @@ cgss2010$incomeFam[cgss2010$incomeFam >= 9999990] <- NA
 cgss2010$occ <- cgss2010$a59k
 cgss2010$occ[cgss2010$a59j == 1] <- 1 
 #因为在a59j中党政机关在a59k里面都为na
-cgss2010$occ <- if_else(cgss2010$occ %in% c(1,2), 1, 0)
+cgss2010$occ <- if_else(cgss2010$occ == 1, 1, 0)
 cgss2010$trust_gover <- if_else(cgss2010$d302 %in% c(4,5), 1, 0)
+cgss2010$trust_local <- if_else(cgss2010$d303 %in% c(4,5), 1, 0)
+
+write.csv(cgss2010,file = "../dataclean/cgss2010.csv")
 ```
 
 
@@ -68,7 +195,43 @@ cgss2010$trust_gover <- if_else(cgss2010$d302 %in% c(4,5), 1, 0)
 ```{r pku2008}
 pku2008_raw <- read_dta("../data/pku2008/pku2008.dta")
 pku2008 <- pku2008_raw %>%
-  select(.,caseid,PSU,gender,a1,a4,a4a,a5,a8,c15_a,k12,k12a,k13,k5,c6a)
+  select(.,caseid,PSU,gender,a1,a4,a4a,a5,a8,c15_a,k12,k12a,k13,k3,k5,c6a,c6g)
+pku2008$province <- pku2008$PSU %>%
+  substr(.,1,2) %>%
+  as.factor() %>%
+  dplyr::recode(
+         "11" = "北京市", 
+         "12" = "天津市", 
+         "13" = "河北省", 
+         "14" = "山西省", 
+         "15" = "内蒙古自治区", 
+         "21" = "辽宁省", 
+         "22" = "吉林省", 
+         "23" = "黑龙江省", 
+         "31" = "上海市", 
+         "32" = "江苏省", 
+         "33" = "浙江省", 
+         "34" = "安徽省", 
+         "35" = "福建省", 
+         "36" = "江西省", 
+         "37" = "山东省", 
+         "41" = "河南省", 
+         "42" = "湖北省", 
+         "43" = "湖南省", 
+         "44" = "广东省", 
+         "45" = "广西壮族自治区", 
+         "46" = "海南省", 
+         "50" = "重庆市", 
+         "51" = "四川省", 
+         "52" = "贵州省", 
+         "53" = "云南省", 
+         "54" = "西藏自治区", 
+         "61" = "陕西省", 
+         "62" = "甘肃省", 
+         "63" = "青海省", 
+         "64" = "宁夏回族自治区", 
+         "65" = "新疆维吾尔自治区"
+  )
 pku2008$age <- 2008 - pku2008$a1
 pku2008$female <- pku2008$gender - 1
 pku2008$edu <- pku2008$a4a
@@ -78,8 +241,21 @@ pku2008$race <- Recode(pku2008$a8,"1 = 1; 7 = 0; 9 = NA")
 pku2008$party <- Recode(pku2008$c15_a,"0 = 0; c(1,3) = 1; 9 = NA")
 pku2008$incomeFam <- ifelse(pku2008$k12 == 1, pku2008$k13, pku2008$k12a)
 pku2008$incomeFam <- Recode(pku2008$incomeFam,"c(8,9,97) = NA")
-pku2008$occ <- Recode(pku2008$k5,"c(0,4,5,7,8,10,77,97) = 0; c(1,2,3,6,9) = 1; c(96,99) = NA")
+pku2008$occ <- Recode(pku2008$k5,"c(4,5,7,8,9,10) = 0; c(1,2,3,6) = 1; 96 = NA")
+pku2008$job <- pku2008$k3
+pku2008$occ[pku2008$occ == 0  & pku2008$job == 1] <- 0
+pku2008$occ[pku2008$occ == 0  & pku2008$job == 0] <- NA
+pku2008$occ[pku2008$occ == 99  & pku2008$job %in% c(2,3,5,9,10)] <- 0
+pku2008$occ[pku2008$occ == 99  & pku2008$job == 6] <- 1
+pku2008$occ[pku2008$occ == 99  & pku2008$job %in% c(77,99)] <- NA
+pku2008$occ[pku2008$occ == 97  & pku2008$job %in% c(2,5,9,10)] <- 0
+pku2008$occ[pku2008$occ == 97  & pku2008$job == 6] <- 1
+pku2008$occ[pku2008$occ == 77  & pku2008$job %in% c(2,3,5,9,10)] <- 0
+pku2008$occ[pku2008$occ == 77  & pku2008$job == 77] <- NA
+#k5 = 0时，k3=1包含在其中，但仍然有739个k3=0， 这里我目前是code为na,因为pku中有k5=997，k3=997 类似的情况，没办法把k3/k5都属于997的变成体制外。0没有具体含义
 pku2008$trust_gover <- Recode(pku2008$c6a,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
+pku2008$trust_gover <- Recode(pku2008$c6g,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
+write.csv(pku2008,file = "../dataclean/pku2008.csv")
 
 ```
 
@@ -87,7 +263,7 @@ pku2008$trust_gover <- Recode(pku2008$c6a,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
 ```{r pku2009}
 pku2009_raw <- read_dta("../data/pku2009/pku2009.dta")
 pku2009 <- pku2009_raw %>%
-  select(.,number,PSU,gender,a1,a4,a4a,a5,a8,c15_a,c15_b,c15_c,k12,k12a,k13,k5,c6a)
+  select(.,number,cun_ju,gender,a1,a4,a4a,a5,a8,c15_a,c15_b,c15_c,k12,k12a,k13,k3,k5,c6a,c6g)
 pku2009$age <- 2009 - pku2009$a1
 pku2009$female <- pku2009$gender - 1
 pku2009$edu <- pku2009$a4a
@@ -99,8 +275,23 @@ pku2009$party[pku2009$c15_b %in% c(1,3)] <- 1
 pku2009$party[pku2009$c15_c %in% c(1,3)] <- 1 #这里需要注意的是，由于问题是曾经是/是，属于共青团的人数特别多，因此最终群众只有105，党员/共青团/民主党派一共有1000人
 pku2009$incomeFam <- ifelse(pku2009$k12 ==1,pku2009$k13,pku2009$k12a)
 pku2009$incomeFam <- Recode(pku2009$incomeFam,"c(8,9) = NA")
-pku2009$occ <- Recode(pku2009$k5,"c(0,4,5,6,7,8,10,77,97) = 0; c(1,2,3,6,9) = 1; c(96,99) = NA")
+pku2009$occ <- Recode(pku2009$k5,"c(4,5,7,8,9,10) = 0; c(1,2,3,6) = 1; c(96,99) = NA")
+pku2009$job <- pku2009$k3
+pku2009$occ[pku2009$occ == 997  & pku2009$job == 1] <- 0
+pku2009$occ[pku2009$occ == 997  & pku2009$job == 997] <- NA
+pku2009$occ[pku2009$occ == 99  & pku2009$job %in% c(2,3,5,9,10)] <- 0
+pku2009$occ[pku2009$occ == 99  & pku2009$job == 6] <- 1
+pku2009$occ[pku2009$occ == 99  & pku2009$job %in% c(77,88)] <- NA
+pku2009$occ[pku2009$occ == 97  & pku2009$job %in% c(2,3,5,7,9,10)] <- 0
+pku2009$occ[pku2009$occ == 97  & pku2009$job == 6] <- 1
+pku2009$occ[pku2009$occ == 97  & pku2009$job %in% c(77,88)] <- NA
+pku2009$occ[pku2009$occ == 96  & pku2009$job %in% c(2,3,5,7,9,10)] <- 0
+pku2009$occ[pku2009$occ == 96  & pku2009$job %in% c(77,88)] <- NA
+pku2009$occ[pku2009$occ == 77  & pku2009$job %in% c(2,3,5,7,9,10)] <- 0
+pku2009$occ[pku2009$occ == 77  & pku2009$job %in% c(77,88)] <- NA
 pku2009$trust_gover <- Recode(pku2009$c6a,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
+pku2009$trust_local <- Recode(pku2009$c6g,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
+write.csv(pku2009,file = "../dataclean/pku2009.csv")
 ```
 
 
@@ -108,7 +299,9 @@ pku2009$trust_gover <- Recode(pku2009$c6a,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
 ```{r css2006}
 css2006_raw <- read_sav("../data/CSS/Data/CSS2006.sav")
 css2006 <- css2006_raw %>%
-  select(.,serial,qs2a,RURAL1,qa01,qa02,qa04,qa06,qa08a,qa10,qb4a,qb4c,qe05_06)
+  select(.,serial,qs2a,RURAL1,qa01,qa02,qa04,qa06,qa08a,qa10,qb4a,qb4c,qe05_06,qe05_05)
+
+  
 # RURAL1(1:rural 0:urban)
 # qa08a最大只能是0-9，10/11要code为na
 css2006$female <- css2006$qa01 - 1
@@ -116,12 +309,14 @@ css2006$hukouRural <- Recode(css2006$qa04,"2 = 0; 3 = NA")#农业户口为1；�
 css2006$edu <- css2006$qa08a
 css2006$eduyear <- css2006$qa10
 css2006$party <- Recode(css2006$qa06,"1:3 = 1; 4 = 0")
-
-css2006$occ <- Recode(css2006$qb4a,"1:4 = 1; 9 = 1; 5:8 = 0; c(11,12) = 0")
-css2006$occ[css2006$occ == 10 & css2006$qb4c %in% c(7, 8)] <- 1
-css2006$occ[css2006$occ == 10 & css2006$qb4c == 11] <- 1
+css2006$job <- css2006$qb4c
+css2006$occ <- Recode(css2006$qb4a,"1:3 = 1; 4:9 = 0; c(11,12,14,-99.99) = NA")
+css2006$occ[css2006$occ == 10 & css2006$job %in% c(7,8)] <- 1
+#这里不一样的一点是8同时表示国有企业或集体企业
+css2006$occ[css2006$occ == 10 & css2006$job == 11] <- 0
 css2006$trust_gover <- Recode(css2006$qe05_06,"c(3,4) = 1; c(1,2,5) = 0")
-
+css2006$trus_local <- Recode(css2006$qe05_05,"c(3,4) = 1; c(1,2,5) = 0")
+write.csv(css2006,file = "../dataclean/css2006.csv")
 ```
 
 ## css2017
@@ -129,7 +324,7 @@ css2006$trust_gover <- Recode(css2006$qe05_06,"c(3,4) = 1; c(1,2,5) = 0")
 css2017_raw <- read_sav("../data/CSS/Data/CSS2017.sav")
 css2017_raw[css2017_raw < 0] <- NA
 css2017 <- css2017_raw %>%
-  select(.,ID,RA1c,RA1d,RA1e,A2,A3,A4a,C5a,C6a_a,B3a,B4a,F1a2_1)
+  select(.,ID,RA1c,RA1d,RA1e,A2,A3,A4a,C5a,C6a_a,B3a,B4a,F1a2_1,F1a2_2,F1a2_3)
 # RURAL1(1:rural 0:urban)
 # qa08a最大只能是0-9，10/11要code为na
 css2017$female <- css2017$RA1c - 1
@@ -141,13 +336,20 @@ css2017$party <- Recode(css2017$A3,"1:3 = 1; c(4,5) = 0")
 css2017$incomPer <- css2017$C5a
 css2017$incomFam <- css2017$C6a_a
 css2017$occ <- Recode(css2017$B3a,"c(3,4) = 0")
-css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(11,10,9,7,5)] <- 0
-css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(4,3,2,1)] <- 1
-css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(11,10,9,8,7,6,5)] <- 0
-css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(4,3,2,1)] <- 1
+css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(9,7,6,5,4)] <- 0
+css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(3,2,1)] <- 1
+css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(11,10)] <- NA
+css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(9,8,7,6,5,4)] <- 0
+css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(3,2,1)] <- 1
+css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(11,10)] <- NA
+#这里10/11分别代表其他和没有单位，为保证编码的一致性，我目前放在了NA。但这里数据量有点大10:102；11:452
 css2017$trust_gover <- Recode(css2017$F1a2_1,"c(3,4) = 1; c(1,2,8) = 0")
+css2017$trust_quxian <- Recode(css2017$F1a2_2,"c(3,4) = 1; c(1,2,8) = 0")
+css2017$trust_xiangzhen <- Recode(css2017$F1a2_3,"c(3,4) = 1; c(1,2,8) = 0")
+write.csv(css2017,file = "../dataclean/css2017.csv")
 
 ```
+
 
 
 
