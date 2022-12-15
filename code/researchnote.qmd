@@ -14,20 +14,24 @@ p_load("rio",
        "here",
        "tidyverse",
        "haven",
-       "car")
+       "car",
+       "modelsummary")
  
 ```
 
-# DataClean
+# dataClean
 
 ## cbs2002
 ```{r cbs2002}
-cbs2002_raw<- read_dta("../data/cbs/cbs2002.dta") 
+cbs2002_raw<- read_dta("../data/cbs/cbs2002.dta") %>%
+  mutate(year = 2002)
 
 cbs2002 <- cbs2002_raw %>%
-  select(.,q1,q2,province_id,v82,v83,v2,v84,v111,v110,v109,v101,v73b,v73c)
+  select(.,q1,q2,province_id,v82,v83,v2,v84,v111,v110,v109,v101,v73b,v73c,year)  %>%
+  rename(id = q1)
 
 # area
+cbs2002$time <- if_else(cbs2002$year < 2013, 0, 1)
 cbs2002$province <- as.character(cbs2002$province_id) %>%
   dplyr::recode(
          "11" = "北京市", 
@@ -67,23 +71,25 @@ cbs2002$female <- cbs2002$v82 - 1
 cbs2002$age <- cbs2002$v83
 cbs2002$hukouRural <- Recode(cbs2002$v2, "2 = 0; c(3,7) = NA") # 农村户口为1，非农为0
 cbs2002$race <- Recode(cbs2002$v84, "2:33 = 0; c(0,98) = NA") #1:han 0:others
-cbs2002$party <- Recode(cbs2002$v111,"1 = 0; 2:4 =1") 
-cbs2002$edu <- cbs2002$v110
+cbs2002$party <- Recode(cbs2002$v111,"1 = 0; 2:4 =1; 9 = NA") 
+cbs2002$edu <- Recode(cbs2002$v110, "1:2 = 1; 3:4 = 2; 5:6 = 3; 7:8 = 4")
 cbs2002$eduyear <- cbs2002$v109
 cbs2002$occ <- Recode(cbs2002$v101,"0:2 = 1; c(3,4,5,6,8) = 0; c(97,99,7,9) = NA")
-#这里需要注意97和99数量很大，特别是97有1547。然后就是7/9在qs中分别代表不使用/不回答。如果7/9足以表明na，那97/99也就是多余的了。
+#这里需要注意97和99数量很大，特别是97有1547。然后就是7/9在qs中分别代表不使用/不回答。如果7/9 足以表明na，那97/99也就是多余的了。
 cbs2002$trust_gover <- Recode(cbs2002$v73b,"5:6 = 1; 0:4 = 0; 8:9 = NA") 
-cbs2002$trust_local <- Recode(cbs2002$v73c,"5:6 = 1; 0:4 = 0; 8:9 = NA") 
+cbs2002$trust_local <- Recode(cbs2002$v73c,"5:6 = 1; 0:4 = 0; 8:9 = NA")  
 write.csv(cbs2002,file = "../dataclean/cbs2002.csv")
 ```
 
 
 ## cbs2014
 ```{r cbs2014}
-cbs2014_raw <- read_sav("../data/cbs/cbs2014.sav")
+cbs2014_raw <- read_sav("../data/cbs/cbs2014.sav") %>%
+  mutate(year = 2014)
 cbs2014_raw[cbs2014_raw < 0] <- NA
 cbs2014 <- cbs2014_raw %>%
-  select(.,CASEID,Proid,A1,A2,A3A,A4,SE1,SE1A,SE9,SE4,SE3,SE2,E1B,E1H)
+  select(.,CASEID,Proid,A1,A2,A3A,A4,SE1,SE1A,SE9,SE4,SE3,SE2,E1B,E1H,year) %>%
+  rename(id = CASEID)
 cbs2014$province <- as.character(cbs2014$Proid) %>%
   dplyr::recode(
          "11" = "北京市", 
@@ -118,17 +124,21 @@ cbs2014$province <- as.character(cbs2014$Proid) %>%
          "64" = "宁夏回族自治区", 
          "65" = "新疆维吾尔自治区")
 
-cbs2014$female <- cbs2014$A1 - 1
+cbs2014$time <- if_else(cbs2014$year < 2013, 0, 1)
+cbs2014$female <- Recode(cbs2014$A1,"1 = 0; 2 = 1; 9 = NA") 
 cbs2014$hukouRural <- Recode(cbs2014$A2,"2 = 0; c(3,9) = NA")
 cbs2014$age <- cbs2014$A3A
 cbs2014$race <- Recode(cbs2014$A4,"2 = 0; 8:9 = NA")
-cbs2014$edu <- cbs2014$SE1
+cbs2014$edu <- Recode(cbs2014$SE1, "1:2 = 1; 3:4 = 2; 5:6 = 3; 7:8 = 4; 9 = NA")
 cbs2014$eduyear <- cbs2014$SE1A
 cbs2014$party <- Recode(cbs2014$SE9,"2:4 = 1; 1 =0; 9 = NA")
 cbs2014$incomeFam <- cbs2014$SE4
 cbs2014$incomeFam[cbs2014$incomeFam %in% c(8,9)] <- NA
 cbs2014$occ <- Recode(cbs2014$SE3,"c(1,2,3,6) = 1; c(4,5,7,8,9,10) = 0; c(98,99) = NA")
-cbs2014$occ[cbs2014$occ == 11 & cbs2014$SE2 %in% c(1,2,3,5,6,10,91,92,93,94,96)] <- 0
+cbs2014$occ[cbs2014$occ == 11 & cbs2014$SE2 %in% c(1,2,3,4,5,6,8,10,91,92,93,94,96)] <- 0
+cbs2014$occ[cbs2014$occ == 11 & cbs2014$SE2 %in% c(7,9)] <- 1
+cbs2014$occ[cbs2014$occ == 11 & cbs2014$SE2 %in% c(98,99)] <- NA
+
 #这里code时有个疑问：先判断工作单位性质，其中的其他根据工作类型来判断，但是SE2中的93/94分别表示退休和下岗/找工作，这两个选项目前编码进体制外。另外，我看原数据“体制内外”将集体企业也编码进体制外，因此修订了我的编码，但这一点需要与老师商榷。原数据将SE2中99（不回答）也编码为体制外，这一点有待商榷。
 cbs2014$trust_gover <- Recode(cbs2014$E1B,"5:6 = 1; 1:4 = 0; 7:9 = NA") 
 cbs2014$trust_local <- Recode(cbs2014$E1H,"5:6 = 1; 1:4 = 0; 7:9 = NA") 
@@ -137,16 +147,20 @@ write.csv(cbs2014,file = "../dataclean/cbs2014.csv")
 
 ## cbs2019
 ```{r cbs2019}
-cbs2019_raw <- read_sav("../data/cbs/cbs2019.sav")
+cbs2019_raw <- read_sav("../data/cbs/cbs2019.sav") %>%
+  mutate(year = 2019)
 
 cbs2019 <- cbs2019_raw %>%
-  select(.,"个案编号",SITEPRO,A1,A2,A4A,A5,SE1,SE1A,SE13,SE5,E4B,E4H) %>%
-  rename("province" = "SITEPRO")
+  select(.,"个案编号",SITEPRO,A1,A2,A4A,A5,SE1,SE1A,SE13,SE5,E4B,E4H,year) %>%
+  rename(province = SITEPRO,
+         id = "个案编号")
+
+cbs2019$time <- if_else(cbs2019$year < 2013, 0, 1)
 cbs2019$female <- cbs2019$A1 - 1
-cbs2019$hukouRural <- Recode(cbs2019$A2,"c(2,3) = 0; c(1,4) = 1;c(5,9) = NA")
+cbs2019$hukouRural <- Recode(cbs2019$A2,"c(2,3) = 0;  c(1,4) = 1; c(5,9) = NA")
 cbs2019$age <- cbs2019$A4A
 cbs2019$race <- Recode(cbs2019$A5,"2 = 0")
-cbs2019$edu <- cbs2019$SE1
+cbs2019$edu <- Recode(cbs2019$SE1, "0:2 = 0; 3:4 = 1; 5:6 = 2; 7:8 = 3; 9:10 = 4")
 cbs2019$eduyear <- cbs2019$SE1A
 cbs2019$party <- Recode(cbs2019$SE13,"2:4 = 1; 1 =0")
 #cbs2019$incomeFam <- cbs2019$SE6 #有汉字表示，如果需要，则重新code
@@ -161,11 +175,14 @@ write.csv(cbs2019,file = "../dataclean/cbs2019.csv")
 
 ## cgss2010
 ```{r cgss1010}
-cgss2010_raw <- read_dta("../data/CGSS2010/cgss2010.dta")
+cgss2010_raw <- read_dta("../data/CGSS2010/cgss2010.dta") %>%
+  mutate(year = 2010)
 cgss2010_raw[cgss2010_raw < 0] <- NA
 cgss2010 <- cgss2010_raw %>%
-  select(.,id,s41,a2,a3a,s5,a18,a4,a10,a8a,a62,a59j,a59k,d302,d303)
-# area
+  select(.,id,s41,a2,a3a,s5,a18,a4,a10,a7a,a8a,a62,a59j,a59k,d302,d303,year)
+
+# area and time
+cgss2010$time <- if_else(cgss2010$year < 2013, 0, 1)
 cgss2010$province <- as.character(cgss2010$s41) %>%
   dplyr::recode("110000" = "北京市", "120000" = "天津市", "130000" = "河北省", "140000" = "山西省", "150000" = "内蒙古自治区", "210000" = "辽宁省", "220000" = "吉林省", "230000" = "黑龙江省", "310000" = "上海市", "320000" = "江苏省", "330000" = "浙江省", "340000" = "安徽省", "350000" = "福建省", "360000" = "江西省", "370000" = "山东省", "410000" = "河南省", "420000" = "湖北省", "430000" = "湖南省", "440000" = "广东省", "450000" = "广西壮族自治区", "460000" = "海南省", "5e+05" = "重庆市", "510000" = "四川省", "520000" = "贵州省", "530000" = "云南省", "540000" = "西藏自治区", "610000" = "陕西省", "620000" = "甘肃省", "630000" = "青海省", "640000" = "宁夏回族自治区", "650000" = "新疆维吾尔自治区")
 
@@ -173,6 +190,7 @@ cgss2010$province <- as.character(cgss2010$s41) %>%
 cgss2010$rural <- cgss2010$s5 - 1 #urban:1
 cgss2010$female <- cgss2010$a2 - 1
 cgss2010$age <- 2010 - cgss2010$a3a
+cgss2010$edu <- Recode(cgss2010$a7a,"1 = 0; 2:3 = 1; 4 = 2; 5:8 = 3; 9:13 = 4; 14 = NA")
 cgss2010$hukouRural <- Recode(cgss2010$a18,"2:5 = 0; c(6,7) = NA")
 cgss2010$race <- if_else(cgss2010$a4== 1, 1, 0)
 cgss2010$party <- if_else(cgss2010$a10 %in% c(1, 3), 1, 0)
@@ -193,9 +211,13 @@ write.csv(cgss2010,file = "../dataclean/cgss2010.csv")
 
 ## pku2008
 ```{r pku2008}
-pku2008_raw <- read_dta("../data/pku2008/pku2008.dta")
+pku2008_raw <- read_dta("../data/pku2008/pku2008.dta") %>%
+  mutate(year = 2008)
 pku2008 <- pku2008_raw %>%
-  select(.,caseid,PSU,gender,a1,a4,a4a,a5,a8,c15_a,k12,k12a,k13,k3,k5,c6a,c6g)
+  select(.,caseid,PSU,gender,a1,a4,a4a,a5,a8,c15_a,k12,k12a,k13,k3,k5,c6a,c6g,year) %>%
+  rename(id = caseid)
+
+pku2008$time <- if_else(pku2008$year < 2013, 0, 1)
 pku2008$province <- pku2008$PSU %>%
   substr(.,1,2) %>%
   as.factor() %>%
@@ -234,7 +256,7 @@ pku2008$province <- pku2008$PSU %>%
   )
 pku2008$age <- 2008 - pku2008$a1
 pku2008$female <- pku2008$gender - 1
-pku2008$edu <- pku2008$a4a
+pku2008$edu <- Recode(pku2008$a4a,"1 = 0; 2 = 1; 3 = 2; 4:5 = 3; 6:9 = 4; 99 =NA")
 pku2008$eduyear <- pku2008$a4
 pku2008$hukouRural <- Recode(pku2008$a5,"5 = 0; 9 = NA")
 pku2008$race <- Recode(pku2008$a8,"1 = 1; 7 = 0; 9 = NA")
@@ -248,10 +270,12 @@ pku2008$occ[pku2008$occ == 0  & pku2008$job == 0] <- NA
 pku2008$occ[pku2008$occ == 99  & pku2008$job %in% c(2,3,5,9,10)] <- 0
 pku2008$occ[pku2008$occ == 99  & pku2008$job == 6] <- 1
 pku2008$occ[pku2008$occ == 99  & pku2008$job %in% c(77,99)] <- NA
-pku2008$occ[pku2008$occ == 97  & pku2008$job %in% c(2,5,9,10)] <- 0
-pku2008$occ[pku2008$occ == 97  & pku2008$job == 6] <- 1
-pku2008$occ[pku2008$occ == 77  & pku2008$job %in% c(2,3,5,9,10)] <- 0
-pku2008$occ[pku2008$occ == 77  & pku2008$job == 77] <- NA
+pku2008$occ[pku2008$occ == 97  & pku2008$job %in% c(1,2,3,4,5,7,9,10)] <- 0
+pku2008$occ[pku2008$occ == 97  & pku2008$job %in% c(6,8)] <- 1
+pku2008$occ[pku2008$occ == 97  & pku2008$job == 77] <- 1
+pku2008$occ[pku2008$occ == 77  & pku2008$job %in% c(1,2,3,4,5,7,9,10)] <- 0
+pku2008$occ[pku2008$occ == 77  & pku2008$job %in% c(6,8)] <- 1
+pku2008$occ[pku2008$occ == 77  & pku2008$job %in% c(77,99)] <- NA
 #k5 = 0时，k3=1包含在其中，但仍然有739个k3=0， 这里我目前是code为na,因为pku中有k5=997，k3=997 类似的情况，没办法把k3/k5都属于997的变成体制外。0没有具体含义
 pku2008$trust_gover <- Recode(pku2008$c6a,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
 pku2008$trust_gover <- Recode(pku2008$c6g,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
@@ -261,12 +285,16 @@ write.csv(pku2008,file = "../dataclean/pku2008.csv")
 
 ## pku2009
 ```{r pku2009}
-pku2009_raw <- read_dta("../data/pku2009/pku2009.dta")
+pku2009_raw <- read_dta("../data/pku2009/pku2009.dta") %>%
+  mutate(year = 2009)
 pku2009 <- pku2009_raw %>%
-  select(.,number,cun_ju,gender,a1,a4,a4a,a5,a8,c15_a,c15_b,c15_c,k12,k12a,k13,k3,k5,c6a,c6g)
+  select(.,number,cun_ju,gender,a1,a4,a4a,a5,a8,c15_a,c15_b,c15_c,k12,k12a,k13,k3,k5,c6a,c6g,year) %>%
+  rename(id = number)
+
+pku2009$time <- if_else(pku2009$year < 2013, 0, 1)
 pku2009$age <- 2009 - pku2009$a1
 pku2009$female <- pku2009$gender - 1
-pku2009$edu <- pku2009$a4a
+pku2009$edu <- Recode(pku2009$a4a,"1 = 0; 2 = 1; 3 = 2; 4:5 = 3; 6:9 = 4; 99 = NA")
 pku2009$eduyear <- pku2009$a4
 pku2009$hukouRural <- Recode(pku2009$a5,"5 = 0") #农业户口为1，非农为0
 pku2009$race <- Recode(pku2009$a8,"1 = 1; 7 = 0; c(8,9)= NA")
@@ -297,23 +325,27 @@ write.csv(pku2009,file = "../dataclean/pku2009.csv")
 
 ## css2006
 ```{r css2006}
-css2006_raw <- read_sav("../data/CSS/Data/CSS2006.sav")
+css2006_raw <- read_sav("../data/CSS/Data/CSS2006.sav") %>%
+  mutate(year = 2006)
 css2006 <- css2006_raw %>%
-  select(.,serial,qs2a,RURAL1,qa01,qa02,qa04,qa06,qa08a,qa10,qb4a,qb4c,qe05_06,qe05_05)
+  select(.,serial,qs2a,RURAL1,qa01,qa02,qa04,qa06,qa08a,qa10,qb4a,qb4c,qe05_06,qe05_05,year) %>%
+  rename(id = serial)
 
   
 # RURAL1(1:rural 0:urban)
 # qa08a最大只能是0-9，10/11要code为na
+css2006$time <- if_else(css2006$year < 2013, 0, 1)
 css2006$female <- css2006$qa01 - 1
+css2006$age <- css2006$qa02
 css2006$hukouRural <- Recode(css2006$qa04,"2 = 0; 3 = NA")#农业户口为1；非农为0
-css2006$edu <- css2006$qa08a
+css2006$edu <- Recode(css2006$qa08a,"1 = 0; 2 = 1; 3 = 2; 4:6 = 3; 7:9 = 4; 10:11 = NA")
 css2006$eduyear <- css2006$qa10
 css2006$party <- Recode(css2006$qa06,"1:3 = 1; 4 = 0")
 css2006$job <- css2006$qb4c
 css2006$occ <- Recode(css2006$qb4a,"1:3 = 1; 4:9 = 0; c(11,12,14,-99.99) = NA")
 css2006$occ[css2006$occ == 10 & css2006$job %in% c(7,8)] <- 1
 #这里不一样的一点是8同时表示国有企业或集体企业
-css2006$occ[css2006$occ == 10 & css2006$job == 11] <- 0
+css2006$occ[css2006$occ == 10 & css2006$job %in% c(9,11)] <- 0
 css2006$trust_gover <- Recode(css2006$qe05_06,"c(3,4) = 1; c(1,2,5) = 0")
 css2006$trus_local <- Recode(css2006$qe05_05,"c(3,4) = 1; c(1,2,5) = 0")
 write.csv(css2006,file = "../dataclean/css2006.csv")
@@ -321,24 +353,27 @@ write.csv(css2006,file = "../dataclean/css2006.csv")
 
 ## css2017
 ```{r css2017}
-css2017_raw <- read_sav("../data/CSS/Data/CSS2017.sav")
+css2017_raw <- read_sav("../data/CSS/Data/CSS2017.sav") %>%
+  mutate(year = 2017)
 css2017_raw[css2017_raw < 0] <- NA
 css2017 <- css2017_raw %>%
-  select(.,ID,RA1c,RA1d,RA1e,A2,A3,A4a,C5a,C6a_a,B3a,B4a,F1a2_1,F1a2_2,F1a2_3)
+  select(.,ID,RA1c,RA1d,RA1e,A2,A3,A4a,C5a,C6a_a,B3a,B4a,F1a2_1,F1a2_2,F1a2_3,year) %>%
+  rename(id = ID)
 # RURAL1(1:rural 0:urban)
 # qa08a最大只能是0-9，10/11要code为na
+css2017$time <- if_else(css2017$year < 2013, 0, 1)
 css2017$female <- css2017$RA1c - 1
 css2017$age <- 2017 - css2017$RA1d
 css2017$hukouRural <- Recode(css2017$A4a,"c(2,3) = 0; 4 = NA")#农业户口为1；非农为0
-css2017$edu <- css2017$RA1e
+css2017$edu <- Recode(css2017$RA1e,"1 = 0; 2 = 1; 3 = 2; 4:6 = 3; 7:9 = 4; 10 = NA")
 css2017$race <- Recode(css2017$A2,"2:8 = 0")
 css2017$party <- Recode(css2017$A3,"1:3 = 1; c(4,5) = 0")
 css2017$incomPer <- css2017$C5a
 css2017$incomFam <- css2017$C6a_a
 css2017$occ <- Recode(css2017$B3a,"c(3,4) = 0")
-css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(9,7,6,5,4)] <- 0
+css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(9,8,7,6,5,4)] <- 0
 css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(3,2,1)] <- 1
-css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(11,10)] <- NA
+css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(11,10,NA)] <- NA
 css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(9,8,7,6,5,4)] <- 0
 css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(3,2,1)] <- 1
 css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(11,10)] <- NA
@@ -353,4 +388,91 @@ write.csv(css2017,file = "../dataclean/css2017.csv")
 
 
 
+# dataCombine
+```{r full_data, warning=FALSE}
+df_cbs2002 <- cbs2002 %>%
+  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover) 
+df_cbs2014 <- cbs2014 %>%
+  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+df_cbs2019 <- cbs2019 %>%
+  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+df_cbs2019$occ <- as.numeric(df_cbs2019$occ) - 1 
+df_cgss2010 <- cgss2010 %>%
+  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+df_pku2008 <- pku2008 %>%
+  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+df_pku2009<- pku2009 %>%
+  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+df_css2006 <- css2006 %>%
+  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+df_css2017 <- css2017 %>%
+  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
 
+fullData <- bind_rows(
+  df_cbs2002,
+  df_cbs2014,
+  df_cbs2019,
+  df_cgss2010,
+  df_pku2008,
+  df_pku2009,
+  df_css2006,
+  df_css2017
+)
+
+# notes:pay attention to the warnings 
+```
+
+
+
+# dataDescription
+```{r dataDescription, results='asis'}
+## fulldata descriptive
+datasummary(
+    data = fullData,
+    output = "../table/Descriptive.docx",
+    (WorkUnit = occ) +
+      (`Central goverment` = trust_gover)  +
+      (Age = age) +
+      (Gender = female) +
+      (Residence = hukouRural) +
+      (Education = edu) +
+      (Partymember = party)    ~
+        (Mean + SD + Min + Max + (Number = N)),
+    title = "Description of Data",
+    notes = "Source："
+) 
+
+## 
+fullData_omit <- fullData %>%
+  drop_na()
+datasummary_crosstab(year ~ occ, 
+                     data = fullData_omit,
+                     output = '../table/table.docx'
+                     )
+```
+
+# Regression
+## list varibale
+```{r varibale_list}
+ls_ctrl <- c(
+   "occ" = "WorkUnit" ,
+   "time" = "Time",  
+   "occ:time" = "OCC * Time",
+   "age" = "Age",
+   "female" = "Gender",
+   "edu" = "Education",
+   "party" = "Partymember",
+   "hukouRural" = "Residence"
+)
+```
+
+## regression and outputs
+```{r outputs_regresssion}
+glm_model <- glm(as.factor(trust_gover) ~ occ + time + occ * time + age + female + edu + party + hukouRural, family = binomial, data = fullData)
+
+# outputs
+msummary(glm_model,
+         output="../outputs/regression.docx",
+         stars = TRUE,
+         coef_rename = ls_ctrl)
+```
