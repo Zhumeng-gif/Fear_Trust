@@ -22,6 +22,7 @@ p_load("rio",
 # dataClean
 
 ## cbs2002
+
 ```{r cbs2002}
 cbs2002_raw<- read_dta("../data/cbs/cbs2002.dta") %>%
   mutate(year = 2002)
@@ -81,8 +82,8 @@ cbs2002$trust_local <- Recode(cbs2002$v73c,"5:6 = 1; 0:4 = 0; 8:9 = NA")
 write.csv(cbs2002,file = "../dataclean/cbs2002.csv")
 ```
 
-
 ## cbs2014
+
 ```{r cbs2014}
 cbs2014_raw <- read_sav("../data/cbs/cbs2014.sav") %>%
   mutate(year = 2014)
@@ -146,6 +147,7 @@ write.csv(cbs2014,file = "../dataclean/cbs2014.csv")
 ```
 
 ## cbs2019
+
 ```{r cbs2019}
 cbs2019_raw <- read_sav("../data/cbs/cbs2019.sav") %>%
   mutate(year = 2019)
@@ -174,6 +176,7 @@ write.csv(cbs2019,file = "../dataclean/cbs2019.csv")
 ```
 
 ## cgss2010
+
 ```{r cgss1010}
 cgss2010_raw <- read_dta("../data/CGSS2010/cgss2010.dta") %>%
   mutate(year = 2010)
@@ -208,8 +211,8 @@ cgss2010$trust_local <- if_else(cgss2010$d303 %in% c(4,5), 1, 0)
 write.csv(cgss2010,file = "../dataclean/cgss2010.csv")
 ```
 
-
 ## pku2008
+
 ```{r pku2008}
 pku2008_raw <- read_dta("../data/pku2008/pku2008.dta") %>%
   mutate(year = 2008)
@@ -284,6 +287,7 @@ write.csv(pku2008,file = "../dataclean/pku2008.csv")
 ```
 
 ## pku2009
+
 ```{r pku2009}
 pku2009_raw <- read_dta("../data/pku2009/pku2009.dta") %>%
   mutate(year = 2009)
@@ -293,7 +297,8 @@ pku2009 <- pku2009_raw %>%
 
 pku2009$time <- if_else(pku2009$year < 2013, 0, 1)
 pku2009$age <- 2009 - pku2009$a1
-pku2009$female <- pku2009$gender - 1
+pku2009$age[pku2009$age < 0] <- NA
+pku2009$female <- Recode(pku2009$gender,"1 = 0; 2 = 1; 8 = NA") 
 pku2009$edu <- Recode(pku2009$a4a,"1 = 0; 2 = 1; 3 = 2; 4:5 = 3; 6:9 = 4; 99 = NA")
 pku2009$eduyear <- pku2009$a4
 pku2009$hukouRural <- Recode(pku2009$a5,"5 = 0") #农业户口为1，非农为0
@@ -322,8 +327,8 @@ pku2009$trust_local <- Recode(pku2009$c6g,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
 write.csv(pku2009,file = "../dataclean/pku2009.csv")
 ```
 
-
 ## css2006
+
 ```{r css2006}
 css2006_raw <- read_sav("../data/CSS/Data/CSS2006.sav") %>%
   mutate(year = 2006)
@@ -352,6 +357,7 @@ write.csv(css2006,file = "../dataclean/css2006.csv")
 ```
 
 ## css2017
+
 ```{r css2017}
 css2017_raw <- read_sav("../data/CSS/Data/CSS2017.sav") %>%
   mutate(year = 2017)
@@ -385,10 +391,8 @@ write.csv(css2017,file = "../dataclean/css2017.csv")
 
 ```
 
-
-
-
 # dataCombine
+
 ```{r full_data, warning=FALSE}
 df_cbs2002 <- cbs2002 %>%
   select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover) 
@@ -418,13 +422,12 @@ fullData <- bind_rows(
   df_css2006,
   df_css2017
 )
-
+#write.csv(fullData, file = "../data/fullData.csv")
 # notes:pay attention to the warnings 
 ```
 
-
-
 # dataDescription
+
 ```{r dataDescription, results='asis'}
 ## fulldata descriptive
 datasummary(
@@ -452,8 +455,8 @@ datasummary_crosstab(year ~ occ,
 ```
 
 # Regression
-## list varibale
-```{r varibale_list}
+```{r outputs_regresssion}
+## varibale_list
 ls_ctrl <- c(
    "occ" = "WorkUnit" ,
    "time" = "Time",  
@@ -464,13 +467,11 @@ ls_ctrl <- c(
    "party" = "Partymember",
    "hukouRural" = "Residence"
 )
-```
 
-## regression and outputs
-```{r outputs_regresssion}
+## regresssion
 glm_model <- glm(as.factor(trust_gover) ~ occ + time + occ * time + age + female + edu + party + hukouRural, family = binomial, data = fullData)
 
-# outputs
+## outputs
 msummary(glm_model,
          output="../outputs/regression.docx",
          stars = TRUE,
