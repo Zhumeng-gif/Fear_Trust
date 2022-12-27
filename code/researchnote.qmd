@@ -455,6 +455,7 @@ datasummary_crosstab(year ~ occ,
 ```
 
 # Regression
+
 ```{r outputs_regresssion}
 ## varibale_list
 ls_ctrl <- c(
