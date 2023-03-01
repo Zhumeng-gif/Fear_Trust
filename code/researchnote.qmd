@@ -24,11 +24,13 @@ p_load("rio",
 ## cbs2002
 
 ```{r cbs2002}
-cbs2002_raw<- read_dta("../data/cbs/cbs2002.dta") %>%
-  mutate(year = 2002)
-
+# no socilalevel
+cbs2002_raw <- read_dta("../data/cbs/cbs2002.dta") %>%
+  mutate(year = 2002,
+         wave = 1)
+cbs2002_raw[cbs2002_raw < 0] <- NA
 cbs2002 <- cbs2002_raw %>%
-  select(.,q1,q2,province_id,v82,v83,v2,v84,v111,v110,v109,v101,v73b,v73c,year)  %>%
+  select(.,q1,q2,province_id,v82,v83,v2,v84,v111,v110,v109,v101,v123,v130,v73b,v73c,year,wave)  %>%
   rename(id = q1)
 
 # area
@@ -70,15 +72,20 @@ cbs2002$province <- as.character(cbs2002$province_id) %>%
 #filter(.,!(v100 == 997)) #997没有回答
 cbs2002$female <- cbs2002$v82 - 1
 cbs2002$age <- cbs2002$v83
+cbs2002$corhort <- Recode(cbs2002$age,"18:29 = 1; 30:49 = 2; 50:69 = 3; 70:90 = 4")
+cbs2002$marriage <- Recode(cbs2002$v123,"9 = NA")
 cbs2002$hukouRural <- Recode(cbs2002$v2, "2 = 0; c(3,7) = NA") # 农村户口为1，非农为0
 cbs2002$race <- Recode(cbs2002$v84, "2:33 = 0; c(0,98) = NA") #1:han 0:others
-cbs2002$party <- Recode(cbs2002$v111,"1 = 0; 2:4 =1; 9 = NA") 
-cbs2002$edu <- Recode(cbs2002$v110, "1:2 = 1; 3:4 = 2; 5:6 = 3; 7:8 = 4")
+cbs2002$party <- Recode(cbs2002$v111,"1:2 = 0; 3:4 =1; 9 = NA") 
+cbs2002$edu <- Recode(cbs2002$v110, "1 = 1; 2 = 2; 3:4 = 3; 5:6 = 4; 9 = NA")
 cbs2002$eduyear <- cbs2002$v109
-cbs2002$occ <- Recode(cbs2002$v101,"0:2 = 1; c(3,4,5,6,8) = 0; c(97,99,7,9) = NA")
-#这里需要注意97和99数量很大，特别是97有1547。然后就是7/9在qs中分别代表不使用/不回答。如果7/9 足以表明na，那97/99也就是多余的了。
-cbs2002$trust_gover <- Recode(cbs2002$v73b,"5:6 = 1; 0:4 = 0; 8:9 = NA") 
-cbs2002$trust_local <- Recode(cbs2002$v73c,"5:6 = 1; 0:4 = 0; 8:9 = NA")  
+cbs2002$occ <- cbs2002$v101
+cbs2002$occR_father <- Recode(cbs2002$v130,"c(1,2,4,5,8) = 1; c(3,6,7,9,10,11) = 0; 97:99 = NA")
+cbs2002$occR <- Recode(cbs2002$v101,"0:3 = 1; 4:9 = 0; c(97,99) = NA")
+cbs2002$trust_gover <- cbs2002$v73b #8/9代表不知道和不回答，0代表说不准
+cbs2002$trust_local <- cbs2002$v73c
+cbs2002$trust_goverR <- Recode(cbs2002$v73b,"5:6 = 1; 0:4 = 0; 8:9 = NA") 
+cbs2002$trust_localR <- Recode(cbs2002$v73c,"5:6 = 1; 0:4 = 0; 8:9 = NA")  
 write.csv(cbs2002,file = "../dataclean/cbs2002.csv")
 ```
 
@@ -86,10 +93,12 @@ write.csv(cbs2002,file = "../dataclean/cbs2002.csv")
 
 ```{r cbs2014}
 cbs2014_raw <- read_sav("../data/cbs/cbs2014.sav") %>%
-  mutate(year = 2014)
+  mutate(year = 2014,
+         wave = 1)
+
 cbs2014_raw[cbs2014_raw < 0] <- NA
 cbs2014 <- cbs2014_raw %>%
-  select(.,CASEID,Proid,A1,A2,A3A,A4,SE1,SE1A,SE9,SE4,SE3,SE2,E1B,E1H,year) %>%
+  select(.,CASEID,Proid,A1,A2,A3A,A4,SE1,SE1A,SE9,SE17,SE8,SE4,SE3,SE2,E1B,E1H,year,wave) %>%
   rename(id = CASEID)
 cbs2014$province <- as.character(cbs2014$Proid) %>%
   dplyr::recode(
@@ -127,22 +136,28 @@ cbs2014$province <- as.character(cbs2014$Proid) %>%
 
 cbs2014$time <- if_else(cbs2014$year < 2013, 0, 1)
 cbs2014$female <- Recode(cbs2014$A1,"1 = 0; 2 = 1; 9 = NA") 
-cbs2014$hukouRural <- Recode(cbs2014$A2,"2 = 0; c(3,9) = NA")
 cbs2014$age <- cbs2014$A3A
+cbs2014$corhort <- Recode(cbs2014$age,"18:29 = 1; 30:49 = 2; 50:69 = 3; 70:99 = 4")
+# 99岁的有133个人
+cbs2014$marriage <- Recode(cbs2014$SE17,"c(1,3,4,5,6) = 0; 2 = 1; 9 = NA")
+cbs2014$socialLevel <- Recode(cbs2014$SE8,"98:99 = NA")
+cbs2014$hukouRural <- Recode(cbs2014$A2,"2 = 0; c(3,9) = NA")
 cbs2014$race <- Recode(cbs2014$A4,"2 = 0; 8:9 = NA")
 cbs2014$edu <- Recode(cbs2014$SE1, "1:2 = 1; 3:4 = 2; 5:6 = 3; 7:8 = 4; 9 = NA")
 cbs2014$eduyear <- cbs2014$SE1A
-cbs2014$party <- Recode(cbs2014$SE9,"2:4 = 1; 1 =0; 9 = NA")
+cbs2014$party <- Recode(cbs2014$SE9,"3:4 = 1; 1:2 =0; 9 = NA")
 cbs2014$incomeFam <- cbs2014$SE4
 cbs2014$incomeFam[cbs2014$incomeFam %in% c(8,9)] <- NA
-cbs2014$occ <- Recode(cbs2014$SE3,"c(1,2,3,6) = 1; c(4,5,7,8,9,10) = 0; c(98,99) = NA")
-cbs2014$occ[cbs2014$occ == 11 & cbs2014$SE2 %in% c(1,2,3,4,5,6,8,10,91,92,93,94,96)] <- 0
-cbs2014$occ[cbs2014$occ == 11 & cbs2014$SE2 %in% c(7,9)] <- 1
-cbs2014$occ[cbs2014$occ == 11 & cbs2014$SE2 %in% c(98,99)] <- NA
-
-#这里code时有个疑问：先判断工作单位性质，其中的其他根据工作类型来判断，但是SE2中的93/94分别表示退休和下岗/找工作，这两个选项目前编码进体制外。另外，我看原数据“体制内外”将集体企业也编码进体制外，因此修订了我的编码，但这一点需要与老师商榷。原数据将SE2中99（不回答）也编码为体制外，这一点有待商榷。
-cbs2014$trust_gover <- Recode(cbs2014$E1B,"5:6 = 1; 1:4 = 0; 7:9 = NA") 
-cbs2014$trust_local <- Recode(cbs2014$E1H,"5:6 = 1; 1:4 = 0; 7:9 = NA") 
+cbs2014$job <- cbs2014$SE2
+cbs2014$occ <- cbs2014$SE3
+cbs2014$occR <- Recode(cbs2014$SE3,"c(1,2,3,6,7,9) = 1; c(4,5,8,10) = 0; c(98,99) = NA")
+cbs2014$occR[cbs2014$occR == 11 & cbs2014$SE2 %in% c(1,2,3,4,5,6,8,10,91,92,93,94,96)] <- 0
+cbs2014$occR[cbs2014$occR == 11 & cbs2014$SE2 %in% c(7,9)] <- 1
+cbs2014$occR[cbs2014$occR == 11 & cbs2014$SE2 %in% c(98,99)] <- NA
+cbs2014$trust_gover <- cbs2014$E1B
+cbs2014$trust_local <- cbs2014$E1H
+cbs2014$trust_goverR <- Recode(cbs2014$E1B,"5:6 = 1; 1:4 = 0; 7:9 = NA") 
+cbs2014$trust_localR <- Recode(cbs2014$E1H,"5:6 = 1; 1:4 = 0; 7:9 = NA") 
 write.csv(cbs2014,file = "../dataclean/cbs2014.csv")
 ```
 
@@ -150,27 +165,55 @@ write.csv(cbs2014,file = "../dataclean/cbs2014.csv")
 
 ```{r cbs2019}
 cbs2019_raw <- read_sav("../data/cbs/cbs2019.sav") %>%
-  mutate(year = 2019)
+  mutate(year = 2019,
+         wave = 1)
 
 cbs2019 <- cbs2019_raw %>%
-  select(.,"个案编号",SITEPRO,A1,A2,A4A,A5,SE1,SE1A,SE13,SE5,E4B,E4H,year) %>%
+  select(.,"个案编号",SITEPRO,A1,A2,A4A,A5,SE1,SE1A,SE11,SE13,SE22,SE5,E4B,E4H,year,wave) %>%
   rename(province = SITEPRO,
          id = "个案编号")
 
+cbs2019$province[cbs2019$province == "上海"] <- "上海市"
+cbs2019$province[cbs2019$province == "北京"] <- "北京市"
+cbs2019$province[cbs2019$province == "北京"] <- "北京市"
+cbs2019$province[cbs2019$province == "重庆"] <- "重庆市"
+cbs2019$province[cbs2019$province == "云南"] <- "云南省"
+cbs2019$province[cbs2019$province == "吉林"] <- "吉林省"
+cbs2019$province[cbs2019$province == "四川"] <- "四川省"
+cbs2019$province[cbs2019$province == "安徽"] <- "安徽省"
+cbs2019$province[cbs2019$province == "山东"] <- "山东省"
+cbs2019$province[cbs2019$province == "江苏"] <- "江苏省"
+cbs2019$province[cbs2019$province == "广西"] <- "广西壮族自治区"
+cbs2019$province[cbs2019$province == "广东"] <- "广东省"
+cbs2019$province[cbs2019$province == "江西"] <- "江西省"
+cbs2019$province[cbs2019$province == "河南"] <- "河南省"
+cbs2019$province[cbs2019$province == "浙江"] <- "浙江省"
+cbs2019$province[cbs2019$province == "湖南"] <- "湖南省"
+cbs2019$province[cbs2019$province == "甘肃"] <- "甘肃省"
+cbs2019$province[cbs2019$province == "贵州"] <- "贵州省"
+cbs2019$province[cbs2019$province == "福建"] <- "福建省"
+cbs2019$province[cbs2019$province == "黑龙江"] <- "黑龙江省"
+
 cbs2019$time <- if_else(cbs2019$year < 2013, 0, 1)
 cbs2019$female <- cbs2019$A1 - 1
-cbs2019$hukouRural <- Recode(cbs2019$A2,"c(2,3) = 0;  c(1,4) = 1; c(5,9) = NA")
 cbs2019$age <- cbs2019$A4A
+cbs2019$corhort <- Recode(cbs2019$age,"18:29 = 1; 30:49 = 2; 50:69 = 3; 70:94 = 4")
+cbs2019$marriage <- Recode(cbs2019$SE22,"c(1,3,4,5,6) = 0; 2 = 1")
+cbs2019$socialLevel <- cbs2019$SE11
+cbs2019$hukouRural <- Recode(cbs2019$A2,"c(2,3) = 0; c(1,4) = 1; c(5,9) = NA")
 cbs2019$race <- Recode(cbs2019$A5,"2 = 0")
 cbs2019$edu <- Recode(cbs2019$SE1, "0:2 = 0; 3:4 = 1; 5:6 = 2; 7:8 = 3; 9:10 = 4")
 cbs2019$eduyear <- cbs2019$SE1A
-cbs2019$party <- Recode(cbs2019$SE13,"2:4 = 1; 1 =0")
+cbs2019$party <- Recode(cbs2019$SE13,"3:4 = 1; 1:2 =0")
 #cbs2019$incomeFam <- cbs2019$SE6 #有汉字表示，如果需要，则重新code
 cbs2019$SE5 <- as.factor(cbs2019$SE5)
-cbs2019$occ <- Recode(cbs2019$SE5,"c(1,2,3,6) = 1; c(4,5,7,8,9,10,11) = 0; 24 = NA")
-
-cbs2019$trust_gover <- Recode(cbs2019$E4B,"5:6 = 1; 1:4 = 0") 
-cbs2019$trust_local <- Recode(cbs2019$E4H,"5:6 = 1; 1:4 = 0")
+cbs2019$occ <- cbs2019$SE5
+cbs2019$occR <- Recode(cbs2019$SE5,"c(1,2,3,6,7,9) = 1; c(4,5,8,10,11) = 0; 24 = NA")
+#虽然这份问卷有说配偶现在的工作/职业及其编号，但很难编码。首先，并不知道职业编号是根据什么来的（问卷里面有告诉，比如101代表党政机关高管），这一个问题需要好好编码。
+cbs2019$trust_gover <- cbs2019$E4B
+cbs2019$trust_local <- cbs2019$E4H
+cbs2019$trust_goverR <- Recode(cbs2019$E4B,"5:6 = 1; 1:4 = 0") 
+cbs2019$trust_localR <- Recode(cbs2019$E4H,"5:6 = 1; 1:4 = 0")
 write.csv(cbs2019,file = "../dataclean/cbs2019.csv")
 
 ```
@@ -179,34 +222,77 @@ write.csv(cbs2019,file = "../dataclean/cbs2019.csv")
 
 ```{r cgss1010}
 cgss2010_raw <- read_dta("../data/CGSS2010/cgss2010.dta") %>%
-  mutate(year = 2010)
+  mutate(year = 2010,
+         wave = 3)
 cgss2010_raw[cgss2010_raw < 0] <- NA
 cgss2010 <- cgss2010_raw %>%
-  select(.,id,s41,a2,a3a,s5,a18,a4,a10,a7a,a8a,a62,a59j,a59k,d302,d303,year)
+  select(.,id,s41,a2,a3a,s5,a18,a4,a10,a7a,a8a,a43a,a62,a69,a73,a87,a88,a59j,a59k,d302,d303,year,wave)
 
 # area and time
 cgss2010$time <- if_else(cgss2010$year < 2013, 0, 1)
 cgss2010$province <- as.character(cgss2010$s41) %>%
-  dplyr::recode("110000" = "北京市", "120000" = "天津市", "130000" = "河北省", "140000" = "山西省", "150000" = "内蒙古自治区", "210000" = "辽宁省", "220000" = "吉林省", "230000" = "黑龙江省", "310000" = "上海市", "320000" = "江苏省", "330000" = "浙江省", "340000" = "安徽省", "350000" = "福建省", "360000" = "江西省", "370000" = "山东省", "410000" = "河南省", "420000" = "湖北省", "430000" = "湖南省", "440000" = "广东省", "450000" = "广西壮族自治区", "460000" = "海南省", "5e+05" = "重庆市", "510000" = "四川省", "520000" = "贵州省", "530000" = "云南省", "540000" = "西藏自治区", "610000" = "陕西省", "620000" = "甘肃省", "630000" = "青海省", "640000" = "宁夏回族自治区", "650000" = "新疆维吾尔自治区")
+  dplyr::recode("110000" = "北京市", 
+                "120000" = "天津市", 
+                "130000" = "河北省", 
+                "140000" = "山西省", 
+                "150000" = "内蒙古自治区",
+                "210000" = "辽宁省", 
+                "220000" = "吉林省", 
+                "230000" = "黑龙江省", 
+                "310000" = "上海市", 
+                "320000" = "江苏省", 
+                "330000" = "浙江省", 
+                "340000" = "安徽省", 
+                "350000" = "福建省", 
+                "360000" = "江西省", 
+                "370000" = "山东省", 
+                "410000" = "河南省", 
+                "420000" = "湖北省", 
+                "430000" = "湖南省", 
+                "440000" = "广东省",
+                "450000" = "广西壮族自治区", 
+                "460000" = "海南省", 
+                "5e+05" = "重庆市",
+                "510000" = "四川省", 
+                "520000" = "贵州省", 
+                "530000" = "云南省", 
+                "540000" = "西藏自治区", 
+                "610000" = "陕西省", 
+                "620000" = "甘肃省",
+                "630000" = "青海省", 
+                "640000" = "宁夏回族自治区", 
+                "650000" = "新疆维吾尔自治区")
 
 
 cgss2010$rural <- cgss2010$s5 - 1 #urban:1
 cgss2010$female <- cgss2010$a2 - 1
 cgss2010$age <- 2010 - cgss2010$a3a
-cgss2010$edu <- Recode(cgss2010$a7a,"1 = 0; 2:3 = 1; 4 = 2; 5:8 = 3; 9:13 = 4; 14 = NA")
+cgss2010$corhort <- Recode(cgss2010$age,"17:29 = 1; 30:49 = 2; 50:69 = 3; 70:96= 4")
+cgss2010$marriage <- Recode(cgss2010$a69,"c(1,2,4,5,6) = 0; 3 = 1")
+cgss2010$socialLevel <- cgss2010$a43a
 cgss2010$hukouRural <- Recode(cgss2010$a18,"2:5 = 0; c(6,7) = NA")
-cgss2010$race <- if_else(cgss2010$a4== 1, 1, 0)
-cgss2010$party <- if_else(cgss2010$a10 %in% c(1, 3), 1, 0)
+cgss2010$race <- if_else(cgss2010$a4 == 1, 1, 0)
+cgss2010$party <- Recode(cgss2010$a10,"1:2 = 1; 3:4 = 0")
+cgss2010$partyP <- Recode(cgss2010$a73,"1:2 = 1; 3:4 = 0")
+cgss2010$edu <- Recode(cgss2010$a7a,"1 = 0; 2:3 = 1; 4 = 2; 5:8 = 3; 9:13 = 4; 14 = NA")
 cgss2010$incomePer <- cgss2010$a8a
 cgss2010$incomePer[cgss2010$incomePer >= 9999990] <- NA # some suspicious data having 9999992, which should not be that "accurate." Thus all coding to missing
 cgss2010$incomeFam <- cgss2010$a62
 cgss2010$incomeFam[cgss2010$incomeFam >= 9999990] <- NA
+cgss2010$job <- cgss2010$a59j
 cgss2010$occ <- cgss2010$a59k
-cgss2010$occ[cgss2010$a59j == 1] <- 1 
-#因为在a59j中党政机关在a59k里面都为na
-cgss2010$occ <- if_else(cgss2010$occ == 1, 1, 0)
-cgss2010$trust_gover <- if_else(cgss2010$d302 %in% c(4,5), 1, 0)
-cgss2010$trust_local <- if_else(cgss2010$d303 %in% c(4,5), 1, 0)
+cgss2010$occR <- Recode(cgss2010$a59k,"1:2 = 1; 3:6 = 0")
+cgss2010$occR[cgss2010$a59j %in% c(1,3,6)] <- 1 
+cgss2010$occR[cgss2010$a59j == 5] <- 0
+#先判断a59k，然后有许多na，但对应的a59j是1/3/6，将其判断为体制内。
+cgss2010$occ_parter <- cgss2010$a88
+cgss2010$occR_parter <- Recode(cgss2010$a88,"1:2 = 1; 3:6 = 0")
+cgss2010$occR_parter[cgss2010$a87 %in% c(1,3,6)] <- 1 
+cgss2010$occR_parter[cgss2010$a87 == 5] <- 0
+cgss2010$trust_gover <- cgss2010$d302
+cgss2010$trust_local <- cgss2010$d303
+cgss2010$trust_goverR <- Recode(cgss2010$d302,"4:5 = 1; 1:2 = 0; 3 = NA")
+cgss2010$trust_localR <- Recode(cgss2010$d303,"4:5 = 1; 1:2 = 0; 3 = NA")
 
 write.csv(cgss2010,file = "../dataclean/cgss2010.csv")
 ```
@@ -215,9 +301,10 @@ write.csv(cgss2010,file = "../dataclean/cgss2010.csv")
 
 ```{r pku2008}
 pku2008_raw <- read_dta("../data/pku2008/pku2008.dta") %>%
-  mutate(year = 2008)
+  mutate(year = 2008,
+         wave = 2)
 pku2008 <- pku2008_raw %>%
-  select(.,caseid,PSU,gender,a1,a4,a4a,a5,a8,c15_a,k12,k12a,k13,k3,k5,c6a,c6g,year) %>%
+  dplyr::select(.,caseid,PSU,gender,a1,a4,a4a,a5,a8,c15_a,c15b,c15_c,k7,k12,k12a,k13,k3,k5,c6a,c6g,year,wave) %>%
   rename(id = caseid)
 
 pku2008$time <- if_else(pku2008$year < 2013, 0, 1)
@@ -258,7 +345,9 @@ pku2008$province <- pku2008$PSU %>%
          "65" = "新疆维吾尔自治区"
   )
 pku2008$age <- 2008 - pku2008$a1
+pku2008$corhort <- Recode(pku2008$age,"18:29 = 1;30:49 = 2; 50:69 = 3;70:71 = 4")
 pku2008$female <- pku2008$gender - 1
+pku2008$marriage <- Recode(pku2008$k7,"2:5 = 0")
 pku2008$edu <- Recode(pku2008$a4a,"1 = 0; 2 = 1; 3 = 2; 4:5 = 3; 6:9 = 4; 99 =NA")
 pku2008$eduyear <- pku2008$a4
 pku2008$hukouRural <- Recode(pku2008$a5,"5 = 0; 9 = NA")
@@ -266,22 +355,24 @@ pku2008$race <- Recode(pku2008$a8,"1 = 1; 7 = 0; 9 = NA")
 pku2008$party <- Recode(pku2008$c15_a,"0 = 0; c(1,3) = 1; 9 = NA")
 pku2008$incomeFam <- ifelse(pku2008$k12 == 1, pku2008$k13, pku2008$k12a)
 pku2008$incomeFam <- Recode(pku2008$incomeFam,"c(8,9,97) = NA")
-pku2008$occ <- Recode(pku2008$k5,"c(4,5,7,8,9,10) = 0; c(1,2,3,6) = 1; 96 = NA")
 pku2008$job <- pku2008$k3
-pku2008$occ[pku2008$occ == 0  & pku2008$job == 1] <- 0
-pku2008$occ[pku2008$occ == 0  & pku2008$job == 0] <- NA
-pku2008$occ[pku2008$occ == 99  & pku2008$job %in% c(2,3,5,9,10)] <- 0
-pku2008$occ[pku2008$occ == 99  & pku2008$job == 6] <- 1
-pku2008$occ[pku2008$occ == 99  & pku2008$job %in% c(77,99)] <- NA
-pku2008$occ[pku2008$occ == 97  & pku2008$job %in% c(1,2,3,4,5,7,9,10)] <- 0
-pku2008$occ[pku2008$occ == 97  & pku2008$job %in% c(6,8)] <- 1
-pku2008$occ[pku2008$occ == 97  & pku2008$job == 77] <- 1
-pku2008$occ[pku2008$occ == 77  & pku2008$job %in% c(1,2,3,4,5,7,9,10)] <- 0
-pku2008$occ[pku2008$occ == 77  & pku2008$job %in% c(6,8)] <- 1
-pku2008$occ[pku2008$occ == 77  & pku2008$job %in% c(77,99)] <- NA
-#k5 = 0时，k3=1包含在其中，但仍然有739个k3=0， 这里我目前是code为na,因为pku中有k5=997，k3=997 类似的情况，没办法把k3/k5都属于997的变成体制外。0没有具体含义
-pku2008$trust_gover <- Recode(pku2008$c6a,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
-pku2008$trust_gover <- Recode(pku2008$c6g,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
+pku2008$occ <- pku2008$k5
+pku2008$occR <- Recode(pku2008$k5,"c(0,4,5,8,10) = 0; c(1,2,3,6,7,9) = 1")
+pku2008$occR[pku2008$occR == 99  & pku2008$job %in% c(1,2,3,4,5,7,9,10)] <- 0
+pku2008$occR[pku2008$occR == 99  & pku2008$job %in% c(6,8)] <- 1
+pku2008$occR[pku2008$occR == 99  & pku2008$job %in% c(77,99)] <- NA
+pku2008$occR[pku2008$occR == 97  & pku2008$job %in% c(1,2,3,4,5,7,9,10)] <- 0
+pku2008$occR[pku2008$occR == 97  & pku2008$job %in% c(6,8)] <- 1
+pku2008$occR[pku2008$occR == 97  & pku2008$job %in% c(77,99)] <- NA
+pku2008$occR[pku2008$occR == 96  & pku2008$job %in% c(2,3,5,10)] <- 0
+pku2008$occR[pku2008$occR == 96  & pku2008$job %in% c(77,99)] <- NA
+pku2008$occR[pku2008$occR == 77  & pku2008$job %in% c(1,2,3,4,5,7,9,10)] <- 0
+pku2008$occR[pku2008$occR == 77  & pku2008$job %in% c(6,8)] <- 1
+pku2008$occR[pku2008$occR == 77  & pku2008$job %in% c(77,99)] <- NA
+pku2008$trust_gover <- 5 - pku2008$c6a
+pku2008$trust_local <- 5 - pku2008$c6g
+pku2008$trust_goverR <- Recode(pku2008$c6a,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
+pku2008$trust_localR <- Recode(pku2008$c6g,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
 write.csv(pku2008,file = "../dataclean/pku2008.csv")
 
 ```
@@ -290,40 +381,83 @@ write.csv(pku2008,file = "../dataclean/pku2008.csv")
 
 ```{r pku2009}
 pku2009_raw <- read_dta("../data/pku2009/pku2009.dta") %>%
-  mutate(year = 2009)
+  mutate(year = 2009,
+         wave = 2)
 pku2009 <- pku2009_raw %>%
-  select(.,number,cun_ju,gender,a1,a4,a4a,a5,a8,c15_a,c15_b,c15_c,k12,k12a,k13,k3,k5,c6a,c6g,year) %>%
+  select(.,number,PSU,gender,a1,a4,a4a,a5,a8,c15_a,c15_b,c15_c,k12,k7,k12a,k13,k3,k5,k26b_a,c6a,c6g,year,wave) %>%
   rename(id = number)
+
+pku2009$province <- pku2009$PSU %>%
+  substr(.,1,2) %>%
+  as.factor() %>%
+  dplyr::recode(
+         "11" = "北京市", 
+         "12" = "天津市", 
+         "13" = "河北省", 
+         "14" = "山西省", 
+         "15" = "内蒙古自治区", 
+         "21" = "辽宁省", 
+         "22" = "吉林省", 
+         "23" = "黑龙江省", 
+         "31" = "上海市", 
+         "32" = "江苏省", 
+         "33" = "浙江省", 
+         "34" = "安徽省", 
+         "35" = "福建省", 
+         "36" = "江西省", 
+         "37" = "山东省", 
+         "41" = "河南省", 
+         "42" = "湖北省", 
+         "43" = "湖南省", 
+         "44" = "广东省", 
+         "45" = "广西壮族自治区", 
+         "46" = "海南省", 
+         "50" = "重庆市", 
+         "51" = "四川省", 
+         "52" = "贵州省", 
+         "53" = "云南省", 
+         "54" = "西藏自治区", 
+         "61" = "陕西省", 
+         "62" = "甘肃省", 
+         "63" = "青海省", 
+         "64" = "宁夏回族自治区", 
+         "65" = "新疆维吾尔自治区"
+  )
 
 pku2009$time <- if_else(pku2009$year < 2013, 0, 1)
 pku2009$age <- 2009 - pku2009$a1
+pku2009$corhort <- Recode(pku2009$age,"17:29 = 1;30:49 = 2; 50:69 = 3; 70 = 4")
 pku2009$age[pku2009$age < 0] <- NA
-pku2009$female <- Recode(pku2009$gender,"1 = 0; 2 = 1; 8 = NA") 
+pku2009$female <- Recode(pku2009$gender,"1 = 0; 2 = 1; 9 = NA ") 
+pku2009$marriage <- Recode(pku2009$k7,"2:5 = 0; c(7,9) = NA")
 pku2009$edu <- Recode(pku2009$a4a,"1 = 0; 2 = 1; 3 = 2; 4:5 = 3; 6:9 = 4; 99 = NA")
 pku2009$eduyear <- pku2009$a4
 pku2009$hukouRural <- Recode(pku2009$a5,"5 = 0") #农业户口为1，非农为0
 pku2009$race <- Recode(pku2009$a8,"1 = 1; 7 = 0; c(8,9)= NA")
-pku2009$party <- Recode(pku2009$c15_a,"5 = 0; c(1,3) = 1; c(9,97) = NA")
-pku2009$party[pku2009$c15_b %in% c(1,3)] <- 1
-pku2009$party[pku2009$c15_c %in% c(1,3)] <- 1 #这里需要注意的是，由于问题是曾经是/是，属于共青团的人数特别多，因此最终群众只有105，党员/共青团/民主党派一共有1000人
+pku2009$party <- Recode(pku2009$c15_a,"c(5,97) = 0; c(1,3) = 1; 9 = NA")
+pku2009$party_parter <- Recode(pku2009$k26b_a,"5 = 0; c(7,9) = NA")
+ #这里需要注意的是，由于问题是曾经是/是，属于共青团的人数特别多，因此最终群众只有105，党员/共青团/民主党派一共有1000人
 pku2009$incomeFam <- ifelse(pku2009$k12 ==1,pku2009$k13,pku2009$k12a)
 pku2009$incomeFam <- Recode(pku2009$incomeFam,"c(8,9) = NA")
-pku2009$occ <- Recode(pku2009$k5,"c(4,5,7,8,9,10) = 0; c(1,2,3,6) = 1; c(96,99) = NA")
+pku2009$occ <- pku2009$k5
 pku2009$job <- pku2009$k3
-pku2009$occ[pku2009$occ == 997  & pku2009$job == 1] <- 0
-pku2009$occ[pku2009$occ == 997  & pku2009$job == 997] <- NA
-pku2009$occ[pku2009$occ == 99  & pku2009$job %in% c(2,3,5,9,10)] <- 0
-pku2009$occ[pku2009$occ == 99  & pku2009$job == 6] <- 1
-pku2009$occ[pku2009$occ == 99  & pku2009$job %in% c(77,88)] <- NA
-pku2009$occ[pku2009$occ == 97  & pku2009$job %in% c(2,3,5,7,9,10)] <- 0
-pku2009$occ[pku2009$occ == 97  & pku2009$job == 6] <- 1
-pku2009$occ[pku2009$occ == 97  & pku2009$job %in% c(77,88)] <- NA
-pku2009$occ[pku2009$occ == 96  & pku2009$job %in% c(2,3,5,7,9,10)] <- 0
-pku2009$occ[pku2009$occ == 96  & pku2009$job %in% c(77,88)] <- NA
-pku2009$occ[pku2009$occ == 77  & pku2009$job %in% c(2,3,5,7,9,10)] <- 0
-pku2009$occ[pku2009$occ == 77  & pku2009$job %in% c(77,88)] <- NA
-pku2009$trust_gover <- Recode(pku2009$c6a,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
-pku2009$trust_local <- Recode(pku2009$c6g,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
+pku2009$occR <- Recode(pku2009$k5,"c(4,5,8,10,997) = 0; c(1,2,3,6,7,9) = 1")
+pku2009$occR[pku2009$occR == 99  & pku2009$job %in% c(1,2,3,4,5,7,9,10)] <- 0
+pku2009$occR[pku2009$occR == 99  & pku2009$job %in% c(6,8)] <- 1
+pku2009$occR[pku2009$occR == 99  & pku2009$job %in% c(77,88,99)] <- NA
+pku2009$occR[pku2009$occR == 97  & pku2009$job %in% c(1,2,3,4,5,7,9,10)] <- 0
+pku2009$occR[pku2009$occR == 97  & pku2009$job %in% c(6,8)] <- 1
+pku2009$occR[pku2009$occR == 97  & pku2009$job %in% c(77,88)] <- NA
+pku2009$occR[pku2009$occR == 96  & pku2009$job %in% c(1,2,3,4,5,7,9,10)] <- 0
+pku2009$occR[pku2009$occR == 96  & pku2009$job %in% c(6,8)] <- 1
+pku2009$occR[pku2009$occR == 96  & pku2009$job %in% c(77,88,99)] <- NA
+pku2009$occR[pku2009$occR == 77  & pku2009$job %in% c(1,2,3,4,5,7,9,10)] <- 0
+pku2009$occR[pku2009$occR == 77  & pku2009$job %in% c(6,8)] <- 1
+pku2009$occR[pku2009$occR == 77  & pku2009$job %in% c(77,88)] <- NA
+pku2009$trust_gover <- 5 - pku2009$c6a
+pku2009$trust_local <- 5 - pku2009$c6g
+pku2009$trust_goverR <- Recode(pku2009$c6a,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
+pku2009$trust_localR <- Recode(pku2009$c6g,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
 write.csv(pku2009,file = "../dataclean/pku2009.csv")
 ```
 
@@ -331,28 +465,46 @@ write.csv(pku2009,file = "../dataclean/pku2009.csv")
 
 ```{r css2006}
 css2006_raw <- read_sav("../data/CSS/Data/CSS2006.sav") %>%
-  mutate(year = 2006)
+  mutate(year = 2006,
+         wave = 4)
 css2006 <- css2006_raw %>%
-  select(.,serial,qs2a,RURAL1,qa01,qa02,qa04,qa06,qa08a,qa10,qb4a,qb4c,qe05_06,qe05_05,year) %>%
+  select(.,serial,qs2a,RURAL1,qa01,qa02,qa03,qa04,qa06,qa08a,qa10,qb4a,qb4c,qc1_5b,qc1_5d,qc1_5e,qd01,qe05_06,qe05_05,year,wave) %>%
   rename(id = serial)
 
-  
 # RURAL1(1:rural 0:urban)
 # qa08a最大只能是0-9，10/11要code为na
 css2006$time <- if_else(css2006$year < 2013, 0, 1)
 css2006$female <- css2006$qa01 - 1
 css2006$age <- css2006$qa02
+css2006$corhort <- Recode(css2006$age,"18:29 = 1; 30:49 = 2; 50:69 = 3")
+css2006$marriage <- Recode(css2006$qa03,"2 = 1; c(1,3,4,5,6) = 0")
 css2006$hukouRural <- Recode(css2006$qa04,"2 = 0; 3 = NA")#农业户口为1；非农为0
 css2006$edu <- Recode(css2006$qa08a,"1 = 0; 2 = 1; 3 = 2; 4:6 = 3; 7:9 = 4; 10:11 = NA")
 css2006$eduyear <- css2006$qa10
-css2006$party <- Recode(css2006$qa06,"1:3 = 1; 4 = 0")
+css2006$party <- Recode(css2006$qa06,"2:3 = 1; c(1,4) = 0")
+css2006$party_parter <- Recode(css2006$qc1_5b,"2:3 =1; c(1,4,5) = 0; 7:8 = NA")
+# 7/8 分别为不适用和不清楚
+css2006$socialLevel <- Recode(css2006$qd01,"6 = NA")
 css2006$job <- css2006$qb4c
-css2006$occ <- Recode(css2006$qb4a,"1:3 = 1; 4:9 = 0; c(11,12,14,-99.99) = NA")
-css2006$occ[css2006$occ == 10 & css2006$job %in% c(7,8)] <- 1
-#这里不一样的一点是8同时表示国有企业或集体企业
-css2006$occ[css2006$occ == 10 & css2006$job %in% c(9,11)] <- 0
-css2006$trust_gover <- Recode(css2006$qe05_06,"c(3,4) = 1; c(1,2,5) = 0")
-css2006$trus_local <- Recode(css2006$qe05_05,"c(3,4) = 1; c(1,2,5) = 0")
+css2006$occ <- css2006$qb4a
+css2006$occR <- Recode(css2006$qb4a,"c(1,2,3,4,9) = 1; c(5,6,7,8,11,12) = 0; c(-99.99,14) = NA")
+css2006$occR[css2006$occR == 10 & css2006$job %in% c(7,8)] <- 1
+css2006$occR[css2006$occR == 10 & css2006$job %in% c(9,11)] <- 0
+css2006$occ_parter <- css2006$qc1_5d
+css2006$occ_parterR <- Recode(css2006$qc1_5d,"c(1,2,3,4,9) = 1; c(5,6,7,8,11,12) = 0; 14 = NA")
+css2006$occ_parterR[css2006$occ_parterR == 10 & css2006$qc1_5e %in% c(11,98)] <- 0
+css2006$occ_parterR[css2006$occ_parterR == 10 & css2006$qc1_5e %in% c(7,8)] <- 1
+css2006$occ_parterR[css2006$occ_parterR == 98 & css2006$qc1_5e %in% c(7,8)] <- 1 
+css2006$occ_parterR[css2006$occ_parterR == 98 & css2006$qc1_5e == 9] <- 0
+css2006$occ_parterR[css2006$occ_parterR == 98 & css2006$qc1_5e == 98] <- NA
+css2006$occ_parterR[css2006$occ_parterR == 97 & css2006$qc1_5e == 12] <- 0
+css2006$occ_parterR[css2006$occ_parterR == 97 & css2006$qc1_5e == 97] <- NA
+
+
+css2006$trust_gover <- css2006$qe05_06
+css2006$trus_local <- css2006$qe05_05
+css2006$trust_goverR <- Recode(css2006$qe05_06,"3:4 = 1; 1:2 = 0; 5 = NA")
+css2006$trus_localR <- Recode(css2006$qe05_05,"3:4 = 1; 1:2 = 0; 5 = NA")
 write.csv(css2006,file = "../dataclean/css2006.csv")
 ```
 
@@ -360,34 +512,222 @@ write.csv(css2006,file = "../dataclean/css2006.csv")
 
 ```{r css2017}
 css2017_raw <- read_sav("../data/CSS/Data/CSS2017.sav") %>%
-  mutate(year = 2017)
+  mutate(year = 2017,
+         wave = 4)
 css2017_raw[css2017_raw < 0] <- NA
 css2017 <- css2017_raw %>%
-  select(.,ID,RA1c,RA1d,RA1e,A2,A3,A4a,C5a,C6a_a,B3a,B4a,F1a2_1,F1a2_2,F1a2_3,year) %>%
+  select(.,ID,province,RA1c,RA1d,RA1e,RA1f,A2,A3,A4a,C5a,C6a_a,B3a,B4a,D3a,F1a2_1,F1a2_2,F1a2_3,year,wave) %>%
   rename(id = ID)
 # RURAL1(1:rural 0:urban)
 # qa08a最大只能是0-9，10/11要code为na
+
+css2017$province <- as.character(css2017$province) %>%
+  dplyr::recode(
+         "11" = "北京市", 
+         "12" = "天津市", 
+         "13" = "河北省", 
+         "14" = "山西省", 
+         "15" = "内蒙古自治区", 
+         "21" = "辽宁省", 
+         "22" = "吉林省", 
+         "23" = "黑龙江省", 
+         "31" = "上海市", 
+         "32" = "江苏省", 
+         "33" = "浙江省", 
+         "34" = "安徽省", 
+         "35" = "福建省", 
+         "36" = "江西省", 
+         "37" = "山东省", 
+         "41" = "河南省", 
+         "42" = "湖北省", 
+         "43" = "湖南省", 
+         "44" = "广东省", 
+         "45" = "广西壮族自治区", 
+         "46" = "海南省", 
+         "50" = "重庆市", 
+         "51" = "四川省", 
+         "52" = "贵州省", 
+         "53" = "云南省", 
+         "54" = "西藏自治区", 
+         "61" = "陕西省", 
+         "62" = "甘肃省", 
+         "63" = "青海省", 
+         "64" = "宁夏回族自治区", 
+         "65" = "新疆维吾尔自治区")
+
 css2017$time <- if_else(css2017$year < 2013, 0, 1)
 css2017$female <- css2017$RA1c - 1
 css2017$age <- 2017 - css2017$RA1d
+css2017$corhort <- Recode(css2017$age,"17:29 = 1; 30:49 = 2; 50:69 = 3;70 = 4")
+css2017$marriage <- Recode(css2017$RA1f,"c(1,4,5,6) = 0; c(2,3) = 1")
 css2017$hukouRural <- Recode(css2017$A4a,"c(2,3) = 0; 4 = NA")#农业户口为1；非农为0
 css2017$edu <- Recode(css2017$RA1e,"1 = 0; 2 = 1; 3 = 2; 4:6 = 3; 7:9 = 4; 10 = NA")
 css2017$race <- Recode(css2017$A2,"2:8 = 0")
-css2017$party <- Recode(css2017$A3,"1:3 = 1; c(4,5) = 0")
+css2017$party <- Recode(css2017$A3,"c(1,3) = 1; c(2,4,5) = 0")
 css2017$incomPer <- css2017$C5a
 css2017$incomFam <- css2017$C6a_a
-css2017$occ <- Recode(css2017$B3a,"c(3,4) = 0")
-css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(9,8,7,6,5,4)] <- 0
-css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(3,2,1)] <- 1
-css2017$occ[css2017$occ == 2  & css2017$B4a %in% c(11,10,NA)] <- NA
-css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(9,8,7,6,5,4)] <- 0
-css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(3,2,1)] <- 1
-css2017$occ[css2017$occ == 1  & css2017$B4a %in% c(11,10)] <- NA
-#这里10/11分别代表其他和没有单位，为保证编码的一致性，我目前放在了NA。但这里数据量有点大10:102；11:452
-css2017$trust_gover <- Recode(css2017$F1a2_1,"c(3,4) = 1; c(1,2,8) = 0")
-css2017$trust_quxian <- Recode(css2017$F1a2_2,"c(3,4) = 1; c(1,2,8) = 0")
-css2017$trust_xiangzhen <- Recode(css2017$F1a2_3,"c(3,4) = 1; c(1,2,8) = 0")
+css2017$socialLevel <- css2017$D3a
+
+css2017$occ <- css2017$B4a
+css2017$occR <- Recode(css2017$B4a,"1:4 = 1; 5:11 = 0")
+css2017$occR[css2017$B3a %in% c(3,4)] <- 0
+css2017$trust_gover <- css2017$F1a2_1
+css2017$trust_goverR <- Recode(css2017$F1a2_1,"3:4 = 1; 1:2 = 0; 8 = NA")
+css2017$trust_quxian <- Recode(css2017$F1a2_2,"3:4 = 1; 1:2 = 0; 8 = NA")
+css2017$trust_xiangzhen <- Recode(css2017$F1a2_3,"3:4 = 1; 1:2 = 0; 8 = NA")
 write.csv(css2017,file = "../dataclean/css2017.csv")
+
+```
+
+## css2019
+```{r css2019}
+css2019_raw <- read_sav("../data/CSS/Data/CSS2019.sav") %>%
+  mutate(year = 2019,
+         wave = 4)
+css2019_raw[css2019_raw < 0] <- NA
+css2019 <- css2019_raw %>%
+  select(.,ID,province,a1_1_a,a1b1_a,a1d1,a1e1,a2,a3,a4a,a5a,b3a,b4a,fam_inc,c51a2,c51a3,c51b2,c51b3,c51c2,c51c3,d3a,d3b,d3c,f1a_1,f1a_2,f1a_3,year,wave) %>%
+  rename(id = ID)
+# 这份问卷有开始工作时父母亲/配偶工作单位的性质，也有父母亲/配偶最后工作单位的性质，问的还蛮全的
+
+css2019$province <- as.character(css2019$province) %>%
+  dplyr::recode(
+         "11" = "北京市", 
+         "12" = "天津市", 
+         "13" = "河北省", 
+         "14" = "山西省", 
+         "15" = "内蒙古自治区", 
+         "21" = "辽宁省", 
+         "22" = "吉林省", 
+         "23" = "黑龙江省", 
+         "31" = "上海市", 
+         "32" = "江苏省", 
+         "33" = "浙江省", 
+         "34" = "安徽省", 
+         "35" = "福建省", 
+         "36" = "江西省", 
+         "37" = "山东省", 
+         "41" = "河南省", 
+         "42" = "湖北省", 
+         "43" = "湖南省", 
+         "44" = "广东省", 
+         "45" = "广西壮族自治区", 
+         "46" = "海南省", 
+         "50" = "重庆市", 
+         "51" = "四川省", 
+         "52" = "贵州省", 
+         "53" = "云南省", 
+         "54" = "西藏自治区", 
+         "61" = "陕西省", 
+         "62" = "甘肃省", 
+         "63" = "青海省", 
+         "64" = "宁夏回族自治区", 
+         "65" = "新疆维吾尔自治区")
+
+css2019$id <- as.numeric(css2019$id)
+css2019$time <- if_else(css2019$year < 2013, 0, 1)
+css2019$female <- css2019$a1b1_a - 1
+css2019$age <- 2019 - css2019$a1_1_a
+css2019$corhort <- Recode(css2019$age,"19:29 = 1; 30:49 = 2; 50:69 = 3")
+css2019$marriage <- Recode(css2019$a1e1,"c(1,4,5,6) = 0; c(2,3) = 1; 7 = NA")
+css2019$hukouRural <- Recode(css2019$a4a,"c(2,3) = 0; c(-1,4) = NA")#农业户口为1；非农为0
+css2019$edu <- Recode(css2019$a1d1,"1 = 0; 2 = 1; 3 = 2; 4:6 = 3; 7:9 = 4; 10:12 = NA")
+#css2019$race <- Recode(css2019$a2) #民族是从10-64，与问卷选项很不一样
+css2019$party <- Recode(css2019$a3,"c(1,3) = 1; c(2,4) = 0")
+css2019$incomFam <- css2019$fam_inc 
+# 这里需要注意：家庭总收入有三个variable可以选择，fam_inc，c4atot，c4aa，当前选择的是na最少的fam_inc
+css2019$socialLevel <- css2019$d3a
+
+css2019$occ <- css2019$b4a
+css2019$occR <- Recode(css2019$b4a,"1:4 = 1; 5:11 = 0")
+css2019$occR[css2019$b3a %in% c(3,4)] <- 0
+css2019$occR[css2019$occR == 98 & css2019$b3a %in% c(3,4)] <- 0
+css2019$occR[css2019$occR == 98 & css2019$b3a %in% c(1,2)] <- NA
+
+css2019$occP <- css2019$c51c3
+css2019$occPr <- Recode(css2019$occP,"1:4 = 1; 5:12 = 0")
+css2019$occPr[css2019$occPr %in% c(13,14,15) & css2019$c51c2 == 2] <- 0
+css2019$occPr[css2019$occPr %in% c(13,14,15) & css2019$c51c2 %in% c(1,3,4,5,NA)] <- NA
+
+css2019$trust_gover <- css2019$f1a_1
+css2019$trust_quxian <- css2019$f1a_2
+css2019$trust_xiangzhen <- css2019$f1a_3
+css2019$trust_goverR <- Recode(css2019$f1a_1,"c(3,4) = 1; c(1,2) = 0; 5 = NA")# 5表示不适用；前面问卷的8表示不好说，我编码为0了，这里没有8的回答（table一下就知道了）
+css2019$trust_quxianR <- Recode(css2019$f1a_2,"c(3,4) = 1; c(1,2) = 0; 5 = NA")
+css2019$trust_xiangzhenR <- Recode(css2019$f1a_3,"c(3,4) = 1; c(1,2) = 0; 5 = NA")
+write.csv(css2019,file = "../dataclean/css2019.csv")
+
+```
+
+## css2021 
+```{r css2021}
+css2021_raw <- read_sav("../data/CSS/Data/CSS2021.sav") %>%
+  mutate(year = 2021,
+         wave = 4)
+css2021 <- css2021_raw %>%
+  select(.,v2,v3_1,v3_2,v3_3,a1b1,a1c1,a1d1,a1e1,a2,a3,a4a,b3,b5a,b11a2,c5a1,d4a,d4b,d4c,f1a_1,f1a_2,f1a_3,year,wave) %>%
+  rename(id = v2)
+
+css2021$province <- as.character(css2021$v3_1) %>%
+  dplyr::recode(
+         "11" = "北京市", 
+         "12" = "天津市", 
+         "13" = "河北省", 
+         "14" = "山西省", 
+         "15" = "内蒙古自治区", 
+         "21" = "辽宁省", 
+         "22" = "吉林省", 
+         "23" = "黑龙江省", 
+         "31" = "上海市", 
+         "32" = "江苏省", 
+         "33" = "浙江省", 
+         "34" = "安徽省", 
+         "35" = "福建省", 
+         "36" = "江西省", 
+         "37" = "山东省", 
+         "41" = "河南省", 
+         "42" = "湖北省", 
+         "43" = "湖南省", 
+         "44" = "广东省", 
+         "45" = "广西壮族自治区", 
+         "46" = "海南省", 
+         "50" = "重庆市", 
+         "51" = "四川省", 
+         "52" = "贵州省", 
+         "53" = "云南省", 
+         "54" = "西藏自治区", 
+         "61" = "陕西省", 
+         "62" = "甘肃省", 
+         "63" = "青海省", 
+         "64" = "宁夏回族自治区", 
+         "65" = "新疆维吾尔自治区")
+css2021$time <- if_else(css2021$year < 2013, 0, 1)
+css2021$female <- css2021$a1b1 - 1
+css2021$age <- 2021 - css2021$a1c1
+css2021$corhort <- Recode(css2021$age,"17:29 = 1; 30:49 = 2; 50:69 = 3;70 = 4")
+css2021$marriage <- Recode(css2021$a1e1,"c(1,4,5,6) = 0; c(2,3) = 1; -2 = NA")
+css2021$hukouRural <- Recode(css2021$a4a,"2:4 = 0")#农业户口为1；非农为0
+css2021$edu <- Recode(css2021$a1d1,"1 = 0; 2 = 1; 3 = 2; 4:6 = 3; 7:9 = 4; c(-2,10) = NA")
+css2021$race <- Recode(css2021$a2,"2:12 = 0; -1 = NA")
+css2021$party <- Recode(css2021$a3,"c(1,3) = 1; c(2,4) = 0")
+css2021$socialLevel <- css2021$d4a
+css2021$incomePer <- css2021$b11a2
+css2021$incomePer[css2021$incomePer < 0 ] <- NA
+css2021$incomeFam <- css2021$c5a1
+css2021$incomeFam[css2021$incomeFam < 0 ] <- NA
+
+css2021$occ <- css2021$b5a
+css2021$occR <- Recode(css2021$b5a,"1:4 = 1; 5:11 = 0")
+css2021$occR[css2021$occR == -1  & css2021$b3 %in% c(3,4)] <- 0
+css2021$occR[css2021$occR == -1  & css2021$b3 %in% c(1,2)] <- NA
+#与2019年不同，取消了关于配偶工作单位性质的问题
+css2021$trust_gover <- css2021$f1a_1
+css2021$trust_quxian <- css2021$f1a_2
+css2021$trust_xiangzhen <- css2021$f1a_3
+css2021$trust_goverR <- Recode(css2021$f1a_1,"c(3,4) = 1; c(1,2,-1) = 0")
+css2021$trust_quxianR <- Recode(css2021$f1a_2,"c(3,4) = 1; c(1,2,-1) = 0")
+css2021$trust_xiangzhenR <- Recode(css2021$f1a_3,"c(3,4) = 1; c(1,2,-1) = 0") #-1表示不好说
+write.csv(css2021,file = "../dataclean/css2021.csv")
 
 ```
 
@@ -395,22 +735,28 @@ write.csv(css2017,file = "../dataclean/css2017.csv")
 
 ```{r full_data, warning=FALSE}
 df_cbs2002 <- cbs2002 %>%
-  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover) 
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
 df_cbs2014 <- cbs2014 %>%
-  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
 df_cbs2019 <- cbs2019 %>%
-  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
-df_cbs2019$occ <- as.numeric(df_cbs2019$occ) - 1 
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
+df_cbs2019$occ <- as.numeric(as.character(df_cbs2019$occ))
+df_cbs2019$occR <- as.numeric(df_cbs2019$occR) - 1 
+
 df_cgss2010 <- cgss2010 %>%
-  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+  dplyr::select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
 df_pku2008 <- pku2008 %>%
-  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
 df_pku2009<- pku2009 %>%
-  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
 df_css2006 <- css2006 %>%
-  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
 df_css2017 <- css2017 %>%
-  select(.,id,year,time,age,female,party,edu,hukouRural,occ,trust_gover)
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
+df_css2019 <- css2019 %>%
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
+df_css2021 <- css2021 %>%
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
 
 fullData <- bind_rows(
   df_cbs2002,
@@ -420,23 +766,28 @@ fullData <- bind_rows(
   df_pku2008,
   df_pku2009,
   df_css2006,
-  df_css2017
+  df_css2017,
+  df_css2019,
+  df_css2021
 )
 #write.csv(fullData, file = "../data/fullData.csv")
-# notes:pay attention to the warnings 
+## notes:pay attention to the warnings 
 ```
 
 # dataDescription
+
+## tableDescription
 
 ```{r dataDescription, results='asis'}
 ## fulldata descriptive
 datasummary(
     data = fullData,
     output = "../table/Descriptive.docx",
-    (WorkUnit = occ) +
+    (WorkUnit = occR) +
       (`Central goverment` = trust_gover)  +
       (Age = age) +
       (Gender = female) +
+      (Marriage = marriage) +
       (Residence = hukouRural) +
       (Education = edu) +
       (Partymember = party)    ~
@@ -448,10 +799,69 @@ datasummary(
 ## 
 fullData_omit <- fullData %>%
   drop_na()
-datasummary_crosstab(year ~ occ, 
+datasummary_crosstab(year ~ occR, 
                      data = fullData_omit,
                      output = '../table/table.docx'
                      )
+```
+
+## plotDescrition
+
+```{r in vs out}
+fullData$occR <- as.factor(fullData$occR)
+fullData$year <- as.factor(fullData$year)
+fullData$trust_gover <- as.factor(fullData$trust_gover)
+
+plot_within <- fullData %>%
+  count(year,occR) %>%
+  drop_na() %>%
+  ggplot(aes(fill = occR, y = n, x = year)) +
+  geom_bar(position = "fill",stat = "identity") +
+  scale_fill_manual(values =  rev(c('#B8860B','#BDB76B')),
+                    labels = c("In the System",
+                               "Out of System")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(y = "Percentage of In/Out")
+ggsave(plot_within,file = "../fig/plot_within.png",width = 8)
+
+plot_trust <- fullData %>%
+  count(year,occR,trust_gover) %>%
+  drop_na() %>%
+  as.data.frame() %>%
+  rename(number = n) %>%
+  ggplot(aes(fill = trust_gover, y = number, x = year)) +
+  facet_wrap(~ occR) +
+  geom_bar(position = "fill",stat = "identity") +
+  scale_fill_manual(values =  rev(c('#B8860B','#BDB76B')),
+                    labels = c("No confidence",
+                               "Confidence")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(y = "Political Trust Within/Out the System")
+
+ggsave(plot_trust,file = "../fig/plot_trust.png",width = 8)
+
+plot_trust_in <- fullData %>%
+  count(year,occR,trust_gover) %>%
+  drop_na() %>%
+  as.data.frame() %>%
+  rename(number = n) %>%
+  filter(occR == 1) %>%
+  ggplot(aes(fill = trust_gover, y = number, x = year)) +
+  geom_bar(position = "fill",stat = "identity") +
+  labs(y = "Political Trust Within the System")
+ggsave(plot_trust_out,file = "../fig/plot_trust_in.png",width = 8)
+
+plot_trust_out <- fullData %>%
+  count(year,occR,trust_gover) %>%
+  drop_na() %>%
+  as.data.frame() %>%
+  rename(number = n) %>%
+  filter(occR == 0) %>%
+  ggplot(aes(fill = trust_gover, y = number, x = year)) +
+  geom_bar(position = "fill",stat = "identity") +
+  labs(y = "Political Trust Without the System")
+ggsave(plot_trust_out,file = "../fig/plot_trust_out.png",width = 8)
+
 ```
 
 # Regression
@@ -459,18 +869,19 @@ datasummary_crosstab(year ~ occ,
 ```{r outputs_regresssion}
 ## varibale_list
 ls_ctrl <- c(
-   "occ" = "WorkUnit" ,
+   "occR" = "WorkUnit" ,
    "time" = "Time",  
-   "occ:time" = "OCC * Time",
+   "occR:time" = "occR * Time",
    "age" = "Age",
    "female" = "Gender",
+   "marriage" = "Marriage",
    "edu" = "Education",
    "party" = "Partymember",
    "hukouRural" = "Residence"
 )
 
 ## regresssion
-glm_model <- glm(as.factor(trust_gover) ~ occ + time + occ * time + age + female + edu + party + hukouRural, family = binomial, data = fullData)
+glm_model <- glm(as.factor(trust_gover) ~ occR + time + occR * time + age + female + marriage + edu + party + hukouRural, family = binomial, data = fullData)
 
 ## outputs
 msummary(glm_model,
