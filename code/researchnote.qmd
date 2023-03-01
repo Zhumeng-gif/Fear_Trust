@@ -273,7 +273,7 @@ cgss2010$socialLevel <- cgss2010$a43a
 cgss2010$hukouRural <- Recode(cgss2010$a18,"2:5 = 0; c(6,7) = NA")
 cgss2010$race <- if_else(cgss2010$a4 == 1, 1, 0)
 cgss2010$party <- Recode(cgss2010$a10,"1:2 = 1; 3:4 = 0")
-cgss2010$partyP <- Recode(cgss2010$a73,"1:2 = 1; 3:4 = 0")
+cgss2010$party_parter <- Recode(cgss2010$a73,"1:2 = 1; 3:4 = 0")
 cgss2010$edu <- Recode(cgss2010$a7a,"1 = 0; 2:3 = 1; 4 = 2; 5:8 = 3; 9:13 = 4; 14 = NA")
 cgss2010$incomePer <- cgss2010$a8a
 cgss2010$incomePer[cgss2010$incomePer >= 9999990] <- NA # some suspicious data having 9999992, which should not be that "accurate." Thus all coding to missing
@@ -286,9 +286,9 @@ cgss2010$occR[cgss2010$a59j %in% c(1,3,6)] <- 1
 cgss2010$occR[cgss2010$a59j == 5] <- 0
 #先判断a59k，然后有许多na，但对应的a59j是1/3/6，将其判断为体制内。
 cgss2010$occ_parter <- cgss2010$a88
-cgss2010$occR_parter <- Recode(cgss2010$a88,"1:2 = 1; 3:6 = 0")
-cgss2010$occR_parter[cgss2010$a87 %in% c(1,3,6)] <- 1 
-cgss2010$occR_parter[cgss2010$a87 == 5] <- 0
+cgss2010$occ_parterR <- Recode(cgss2010$a88,"1:2 = 1; 3:6 = 0")
+cgss2010$occ_parterR[cgss2010$a87 %in% c(1,3,6)] <- 1 
+cgss2010$occ_parterR[cgss2010$a87 == 5] <- 0
 cgss2010$trust_gover <- cgss2010$d302
 cgss2010$trust_local <- cgss2010$d303
 cgss2010$trust_goverR <- Recode(cgss2010$d302,"4:5 = 1; 1:2 = 0; 3 = NA")
@@ -304,46 +304,10 @@ pku2008_raw <- read_dta("../data/pku2008/pku2008.dta") %>%
   mutate(year = 2008,
          wave = 2)
 pku2008 <- pku2008_raw %>%
-  dplyr::select(.,caseid,PSU,gender,a1,a4,a4a,a5,a8,c15_a,c15b,c15_c,k7,k12,k12a,k13,k3,k5,c6a,c6g,year,wave) %>%
+  dplyr::select(.,caseid,PSU,gender,a1,a4,a4a,a5,a8,c15_a,c15b,c15_c,k7,k12,k12a,k13,k3,k5,k26b_a,c6a,c6g,year,wave) %>%
   rename(id = caseid)
 
 pku2008$time <- if_else(pku2008$year < 2013, 0, 1)
-pku2008$province <- pku2008$PSU %>%
-  substr(.,1,2) %>%
-  as.factor() %>%
-  dplyr::recode(
-         "11" = "北京市", 
-         "12" = "天津市", 
-         "13" = "河北省", 
-         "14" = "山西省", 
-         "15" = "内蒙古自治区", 
-         "21" = "辽宁省", 
-         "22" = "吉林省", 
-         "23" = "黑龙江省", 
-         "31" = "上海市", 
-         "32" = "江苏省", 
-         "33" = "浙江省", 
-         "34" = "安徽省", 
-         "35" = "福建省", 
-         "36" = "江西省", 
-         "37" = "山东省", 
-         "41" = "河南省", 
-         "42" = "湖北省", 
-         "43" = "湖南省", 
-         "44" = "广东省", 
-         "45" = "广西壮族自治区", 
-         "46" = "海南省", 
-         "50" = "重庆市", 
-         "51" = "四川省", 
-         "52" = "贵州省", 
-         "53" = "云南省", 
-         "54" = "西藏自治区", 
-         "61" = "陕西省", 
-         "62" = "甘肃省", 
-         "63" = "青海省", 
-         "64" = "宁夏回族自治区", 
-         "65" = "新疆维吾尔自治区"
-  )
 pku2008$age <- 2008 - pku2008$a1
 pku2008$corhort <- Recode(pku2008$age,"18:29 = 1;30:49 = 2; 50:69 = 3;70:71 = 4")
 pku2008$female <- pku2008$gender - 1
@@ -353,6 +317,7 @@ pku2008$eduyear <- pku2008$a4
 pku2008$hukouRural <- Recode(pku2008$a5,"5 = 0; 9 = NA")
 pku2008$race <- Recode(pku2008$a8,"1 = 1; 7 = 0; 9 = NA")
 pku2008$party <- Recode(pku2008$c15_a,"0 = 0; c(1,3) = 1; 9 = NA")
+pku2008$party_parter <- Recode(pku2008$k26b_a,"5 = 0; c(7,9) = NA")
 pku2008$incomeFam <- ifelse(pku2008$k12 == 1, pku2008$k13, pku2008$k12a)
 pku2008$incomeFam <- Recode(pku2008$incomeFam,"c(8,9,97) = NA")
 pku2008$job <- pku2008$k3
@@ -370,7 +335,9 @@ pku2008$occR[pku2008$occR == 77  & pku2008$job %in% c(1,2,3,4,5,7,9,10)] <- 0
 pku2008$occR[pku2008$occR == 77  & pku2008$job %in% c(6,8)] <- 1
 pku2008$occR[pku2008$occR == 77  & pku2008$job %in% c(77,99)] <- NA
 pku2008$trust_gover <- 5 - pku2008$c6a
+pku2008$trust_gover[pku2008$trust_gover < 0] <- NA
 pku2008$trust_local <- 5 - pku2008$c6g
+pku2008$trust_local[pku2008$trust_local < 0] <- NA
 pku2008$trust_goverR <- Recode(pku2008$c6a,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
 pku2008$trust_localR <- Recode(pku2008$c6g,"c(1,2) = 1; c(3,4) = 0;c(8,9) = NA")
 write.csv(pku2008,file = "../dataclean/pku2008.csv")
@@ -387,47 +354,11 @@ pku2009 <- pku2009_raw %>%
   select(.,number,PSU,gender,a1,a4,a4a,a5,a8,c15_a,c15_b,c15_c,k12,k7,k12a,k13,k3,k5,k26b_a,c6a,c6g,year,wave) %>%
   rename(id = number)
 
-pku2009$province <- pku2009$PSU %>%
-  substr(.,1,2) %>%
-  as.factor() %>%
-  dplyr::recode(
-         "11" = "北京市", 
-         "12" = "天津市", 
-         "13" = "河北省", 
-         "14" = "山西省", 
-         "15" = "内蒙古自治区", 
-         "21" = "辽宁省", 
-         "22" = "吉林省", 
-         "23" = "黑龙江省", 
-         "31" = "上海市", 
-         "32" = "江苏省", 
-         "33" = "浙江省", 
-         "34" = "安徽省", 
-         "35" = "福建省", 
-         "36" = "江西省", 
-         "37" = "山东省", 
-         "41" = "河南省", 
-         "42" = "湖北省", 
-         "43" = "湖南省", 
-         "44" = "广东省", 
-         "45" = "广西壮族自治区", 
-         "46" = "海南省", 
-         "50" = "重庆市", 
-         "51" = "四川省", 
-         "52" = "贵州省", 
-         "53" = "云南省", 
-         "54" = "西藏自治区", 
-         "61" = "陕西省", 
-         "62" = "甘肃省", 
-         "63" = "青海省", 
-         "64" = "宁夏回族自治区", 
-         "65" = "新疆维吾尔自治区"
-  )
-
 pku2009$time <- if_else(pku2009$year < 2013, 0, 1)
 pku2009$age <- 2009 - pku2009$a1
 pku2009$corhort <- Recode(pku2009$age,"17:29 = 1;30:49 = 2; 50:69 = 3; 70 = 4")
 pku2009$age[pku2009$age < 0] <- NA
+pku2009$corhort[pku2009$corhort < 0] <- NA
 pku2009$female <- Recode(pku2009$gender,"1 = 0; 2 = 1; 9 = NA ") 
 pku2009$marriage <- Recode(pku2009$k7,"2:5 = 0; c(7,9) = NA")
 pku2009$edu <- Recode(pku2009$a4a,"1 = 0; 2 = 1; 3 = 2; 4:5 = 3; 6:9 = 4; 99 = NA")
@@ -436,7 +367,7 @@ pku2009$hukouRural <- Recode(pku2009$a5,"5 = 0") #农业户口为1，非农为0
 pku2009$race <- Recode(pku2009$a8,"1 = 1; 7 = 0; c(8,9)= NA")
 pku2009$party <- Recode(pku2009$c15_a,"c(5,97) = 0; c(1,3) = 1; 9 = NA")
 pku2009$party_parter <- Recode(pku2009$k26b_a,"5 = 0; c(7,9) = NA")
- #这里需要注意的是，由于问题是曾经是/是，属于共青团的人数特别多，因此最终群众只有105，党员/共青团/民主党派一共有1000人
+
 pku2009$incomeFam <- ifelse(pku2009$k12 ==1,pku2009$k13,pku2009$k12a)
 pku2009$incomeFam <- Recode(pku2009$incomeFam,"c(8,9) = NA")
 pku2009$occ <- pku2009$k5
@@ -455,7 +386,10 @@ pku2009$occR[pku2009$occR == 77  & pku2009$job %in% c(1,2,3,4,5,7,9,10)] <- 0
 pku2009$occR[pku2009$occR == 77  & pku2009$job %in% c(6,8)] <- 1
 pku2009$occR[pku2009$occR == 77  & pku2009$job %in% c(77,88)] <- NA
 pku2009$trust_gover <- 5 - pku2009$c6a
+pku2009$trust_gover[pku2009$trust_gover < 0] <- NA
+
 pku2009$trust_local <- 5 - pku2009$c6g
+pku2009$trust_local[pku2009$trust_local < 0] <- NA
 pku2009$trust_goverR <- Recode(pku2009$c6a,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
 pku2009$trust_localR <- Recode(pku2009$c6g,"c(1,2) = 1; c(3,4) = 0; c(8,9) = NA")
 write.csv(pku2009,file = "../dataclean/pku2009.csv")
@@ -628,7 +562,7 @@ css2019$id <- as.numeric(css2019$id)
 css2019$time <- if_else(css2019$year < 2013, 0, 1)
 css2019$female <- css2019$a1b1_a - 1
 css2019$age <- 2019 - css2019$a1_1_a
-css2019$corhort <- Recode(css2019$age,"19:29 = 1; 30:49 = 2; 50:69 = 3")
+css2019$corhort <- Recode(css2019$age,"18:29 = 1; 30:49 = 2; 50:69 = 3")
 css2019$marriage <- Recode(css2019$a1e1,"c(1,4,5,6) = 0; c(2,3) = 1; 7 = NA")
 css2019$hukouRural <- Recode(css2019$a4a,"c(2,3) = 0; c(-1,4) = NA")#农业户口为1；非农为0
 css2019$edu <- Recode(css2019$a1d1,"1 = 0; 2 = 1; 3 = 2; 4:6 = 3; 7:9 = 4; 10:12 = NA")
@@ -644,10 +578,10 @@ css2019$occR[css2019$b3a %in% c(3,4)] <- 0
 css2019$occR[css2019$occR == 98 & css2019$b3a %in% c(3,4)] <- 0
 css2019$occR[css2019$occR == 98 & css2019$b3a %in% c(1,2)] <- NA
 
-css2019$occP <- css2019$c51c3
-css2019$occPr <- Recode(css2019$occP,"1:4 = 1; 5:12 = 0")
-css2019$occPr[css2019$occPr %in% c(13,14,15) & css2019$c51c2 == 2] <- 0
-css2019$occPr[css2019$occPr %in% c(13,14,15) & css2019$c51c2 %in% c(1,3,4,5,NA)] <- NA
+css2019$occ_parter <- css2019$c51c3
+css2019$occ_parterR <- Recode(css2019$occ_parter,"1:4 = 1; 5:12 = 0")
+css2019$occ_parterR[css2019$occ_parterR %in% c(13,14,15) & css2019$c51c2 == 2] <- 0
+css2019$occ_parterR[css2019$occ_parterR %in% c(13,14,15) & css2019$c51c2 %in% c(1,3,4,5,NA)] <- NA
 
 css2019$trust_gover <- css2019$f1a_1
 css2019$trust_quxian <- css2019$f1a_2
@@ -731,32 +665,88 @@ write.csv(css2021,file = "../dataclean/css2021.csv")
 
 ```
 
-# dataCombine
+# dataCombine for all variable
 
+```{r full_data, warning=FALSE}
+cbs2002A <- cbs2002 %>%
+  select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR) 
+
+cbs2014A <- cbs2014 %>%
+  select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR) 
+
+cbs2019A <- cbs2019 %>%
+  select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR)  
+cbs2019A$occ <- as.numeric(as.character(cbs2019A$occ))
+cbs2019A$occR <- as.numeric(cbs2019A$occR) - 1 
+
+cgss2010A <- cgss2010 %>%
+  dplyr::select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,occ_parter,occ_parterR,trust_gover,trust_goverR) 
+
+pku2008A <- pku2008 %>%
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,party_parter,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR) 
+
+pku2009A <- pku2009 %>%
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,party_parter,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR) 
+
+css2006A <- css2006 %>%
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,party_parter,edu,hukouRural,occ,occR,occ_parter,occ_parterR,trust_gover,trust_goverR) 
+
+css2017A <- css2017 %>%
+  select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR) 
+#css2019A <- css2019 %>%
+  #select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,occ_parter,occ_parterR,trust_gover,trust_goverR)
+css2021A <- css2021 %>%
+  select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR) 
+
+allData <- bind_rows(
+  cbs2002A,
+  cbs2014A,
+  cbs2019A,
+  cgss2010A,
+  pku2008A,
+  pku2009A,
+  css2006A,
+  css2017A,
+  css2021A
+)
+write.csv(allData, file = "../data/allData.csv")
+## notes:pay attention to the warnings 
+```
+
+
+# dataCombine for some variable
 ```{r full_data, warning=FALSE}
 df_cbs2002 <- cbs2002 %>%
   select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
+
 df_cbs2014 <- cbs2014 %>%
-  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
-df_cbs2019 <- cbs2019 %>%
   select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
+
+df_cbs2019 <- cbs2019 %>%
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)  
 df_cbs2019$occ <- as.numeric(as.character(df_cbs2019$occ))
 df_cbs2019$occR <- as.numeric(df_cbs2019$occR) - 1 
 
 df_cgss2010 <- cgss2010 %>%
-  dplyr::select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
+  dplyr::select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
+
 df_pku2008 <- pku2008 %>%
   select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
-df_pku2009<- pku2009 %>%
-  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
+  
+df_pku2009 <- pku2009 %>%
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
+
 df_css2006 <- css2006 %>%
-  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
+  
+
 df_css2017 <- css2017 %>%
-  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
-df_css2019 <- css2019 %>%
-  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
+  
+#df_css2019 <- css2019 %>%
+  #select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
 df_css2021 <- css2021 %>%
-  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
 
 fullData <- bind_rows(
   df_cbs2002,
@@ -767,10 +757,9 @@ fullData <- bind_rows(
   df_pku2009,
   df_css2006,
   df_css2017,
-  df_css2019,
   df_css2021
 )
-#write.csv(fullData, file = "../data/fullData.csv")
+write.csv(fullData, file = "../data/fullData.csv")
 ## notes:pay attention to the warnings 
 ```
 
@@ -785,6 +774,7 @@ datasummary(
     output = "../table/Descriptive.docx",
     (WorkUnit = occR) +
       (`Central goverment` = trust_gover)  +
+      (`Central govermentR` = trust_goverR) +
       (Age = age) +
       (Gender = female) +
       (Marriage = marriage) +
@@ -801,8 +791,17 @@ fullData_omit <- fullData %>%
   drop_na()
 datasummary_crosstab(year ~ occR, 
                      data = fullData_omit,
-                     output = '../table/table.docx'
+                     output = '../table/occ.docx'
                      )
+datasummary_crosstab(year ~ trust_goverR, 
+                     data = fullData_omit,
+                     output = '../table/trust.docx'
+                     )
+occ_trust <- fullData %>%
+  count(year,occR,trust_goverR) %>%
+  drop_na() %>%
+  as.data.frame()
+write.csv(occ_trust,file = "../table/occ_trust.csv")
 ```
 
 ## plotDescrition
@@ -810,7 +809,7 @@ datasummary_crosstab(year ~ occR,
 ```{r in vs out}
 fullData$occR <- as.factor(fullData$occR)
 fullData$year <- as.factor(fullData$year)
-fullData$trust_gover <- as.factor(fullData$trust_gover)
+fullData$trust_goverR <- as.factor(fullData$trust_goverR)
 
 plot_within <- fullData %>%
   count(year,occR) %>%
@@ -818,18 +817,19 @@ plot_within <- fullData %>%
   ggplot(aes(fill = occR, y = n, x = year)) +
   geom_bar(position = "fill",stat = "identity") +
   scale_fill_manual(values =  rev(c('#B8860B','#BDB76B')),
-                    labels = c("In the System",
-                               "Out of System")) +
+                    labels = c("Out the System",
+                               "In of System")) +
   scale_y_continuous(labels = scales::percent) +
   labs(y = "Percentage of In/Out")
 ggsave(plot_within,file = "../fig/plot_within.png",width = 8)
+# 这张图和table.docx 这个表一起来看。一个是图，一个是数据
 
 plot_trust <- fullData %>%
-  count(year,occR,trust_gover) %>%
+  count(year,occR,trust_goverR) %>%
   drop_na() %>%
   as.data.frame() %>%
   rename(number = n) %>%
-  ggplot(aes(fill = trust_gover, y = number, x = year)) +
+  ggplot(aes(fill = trust_goverR, y = number, x = year)) +
   facet_wrap(~ occR) +
   geom_bar(position = "fill",stat = "identity") +
   scale_fill_manual(values =  rev(c('#B8860B','#BDB76B')),
@@ -841,23 +841,23 @@ plot_trust <- fullData %>%
 ggsave(plot_trust,file = "../fig/plot_trust.png",width = 8)
 
 plot_trust_in <- fullData %>%
-  count(year,occR,trust_gover) %>%
+  count(year,occR,trust_goverR) %>%
   drop_na() %>%
   as.data.frame() %>%
   rename(number = n) %>%
   filter(occR == 1) %>%
-  ggplot(aes(fill = trust_gover, y = number, x = year)) +
+  ggplot(aes(fill = trust_goverR, y = number, x = year)) +
   geom_bar(position = "fill",stat = "identity") +
   labs(y = "Political Trust Within the System")
-ggsave(plot_trust_out,file = "../fig/plot_trust_in.png",width = 8)
+ggsave(plot_trust_in,file = "../fig/plot_trust_in.png",width = 8)
 
 plot_trust_out <- fullData %>%
-  count(year,occR,trust_gover) %>%
+  count(year,occR,trust_goverR) %>%
   drop_na() %>%
   as.data.frame() %>%
   rename(number = n) %>%
   filter(occR == 0) %>%
-  ggplot(aes(fill = trust_gover, y = number, x = year)) +
+  ggplot(aes(fill = trust_goverR, y = number, x = year)) +
   geom_bar(position = "fill",stat = "identity") +
   labs(y = "Political Trust Without the System")
 ggsave(plot_trust_out,file = "../fig/plot_trust_out.png",width = 8)

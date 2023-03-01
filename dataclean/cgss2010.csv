@@ -1,4 +1,4 @@
-"","id","s41","a2","a3a","s5","a18","a4","a10","a7a","a8a","a43a","a62","a69","a73","a87","a88","a59j","a59k","d302","d303","year","wave","time","province","rural","female","age","corhort","marriage","socialLevel","hukouRural","race","party","partyP","edu","incomePer","incomeFam","job","occ","occR","occ_parter","occR_parter","trust_gover","trust_local","trust_goverR","trust_localR"
+"","id","s41","a2","a3a","s5","a18","a4","a10","a7a","a8a","a43a","a62","a69","a73","a87","a88","a59j","a59k","d302","d303","year","wave","time","province","rural","female","age","corhort","marriage","socialLevel","hukouRural","race","party","party_parter","edu","incomePer","incomeFam","job","occ","occR","occ_parter","occ_parterR","trust_gover","trust_local","trust_goverR","trust_localR"
 "1",1,5e+05,2,1971,1,1,1,4,3,0,5,110000,3,4,5,3,NA,NA,5,5,2010,3,0,"重庆市",0,1,39,2,1,5,1,1,0,0,1,0,110000,NA,NA,NA,3,0,5,5,1,1
 "2",2,5e+05,2,1977,1,1,1,4,4,9999997,4,12000,3,4,2,3,NA,NA,4,3,2010,3,0,"重庆市",0,1,33,2,1,4,1,1,0,0,2,NA,12000,NA,NA,NA,3,0,4,3,1,NA
 "3",3,5e+05,2,1988,1,2,1,3,10,9999997,4,9999998,1,NA,NA,NA,NA,NA,4,1,2010,3,0,"重庆市",0,1,22,1,0,4,0,1,0,NA,4,NA,NA,NA,NA,NA,NA,NA,4,1,1,0
