@@ -693,8 +693,10 @@ css2006A <- css2006 %>%
 
 css2017A <- css2017 %>%
   select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR) 
-#css2019A <- css2019 %>%
-  #select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,occ_parter,occ_parterR,trust_gover,trust_goverR)
+
+css2019A <- css2019 %>%
+  select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,occ_parter,occ_parterR,trust_gover,trust_goverR)
+
 css2021A <- css2021 %>%
   select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR) 
 
@@ -707,6 +709,7 @@ allData <- bind_rows(
   pku2009A,
   css2006A,
   css2017A,
+  css2019A,
   css2021A
 )
 write.csv(allData, file = "../data/allData.csv")
@@ -743,8 +746,9 @@ df_css2006 <- css2006 %>%
 df_css2017 <- css2017 %>%
   select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
   
-#df_css2019 <- css2019 %>%
-  #select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
+df_css2019 <- css2019 %>%
+  select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR)
+
 df_css2021 <- css2021 %>%
   select(.,id,wave,year,time,age,corhort,female,marriage,party,edu,hukouRural,occ,occR,trust_gover,trust_goverR) 
 
@@ -757,6 +761,7 @@ fullData <- bind_rows(
   df_pku2009,
   df_css2006,
   df_css2017,
+  df_css2019,
   df_css2021
 )
 write.csv(fullData, file = "../data/fullData.csv")
@@ -881,7 +886,7 @@ ls_ctrl <- c(
 )
 
 ## regresssion
-glm_model <- glm(as.factor(trust_gover) ~ occR + time + occR * time + age + female + marriage + edu + party + hukouRural, family = binomial, data = fullData)
+glm_model <- glm(as.factor(trust_goverR) ~ occR + time + occR * time + age + female + marriage + edu + party + hukouRural, family = binomial, data = fullData)
 
 ## outputs
 msummary(glm_model,
