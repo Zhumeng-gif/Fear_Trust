@@ -204,7 +204,7 @@ cbs2011_raw <- haven::read_dta("../data/cbs/cbs2011.dta") %>%
          wave = 1) %>%
   dplyr::rename("id" = "idnumber")
 
-data <- read.csv("../data/cbs/data.csv")
+data <- read.csv("../data/cbs/data2011.csv")
 cbs2011 <- cbind(cbs2011_raw,data)
 write.csv(cbs2011_raw,file = "../data/cbs/cbs2011.csv")
 
