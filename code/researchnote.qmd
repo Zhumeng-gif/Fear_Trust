@@ -1100,6 +1100,8 @@ write.csv(css2021,file = "../dataclean/css2021.csv")
 
 ```
 
+
+
 # dataCombine for all variable
 
 ```{r full_data, warning=FALSE, echo=FALSE}
@@ -1168,8 +1170,8 @@ write.csv(allData, file = "../data/allData.csv")
 # dataCombine for some variable
 
 ```{r full_data, warning=FALSE}
-#df_cbs2002 <- cbs2002 %>%
-# dplyr::select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR,trust_gover_z)
+df_cbs2002 <- cbs2002 %>%
+ dplyr::select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR,trust_gover_z)
 
 df_cbs2008 <- cbs2008 %>%
  dplyr::select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR,trust_gover_z,trust_gover_max)
@@ -1207,17 +1209,17 @@ df_css2021 <- css2021 %>%
   dplyr::select(.,id,wave,year,time,province,age,corhort,female,marriage,party,edu,hukouRural,race,occ,occR,trust_gover,trust_goverR,trust_gover_z,trust_gover_max) 
 
 fullData <- bind_rows(
-  #df_cbs2002,
-  df_cbs2008,
+  df_cbs2002,
+  #df_cbs2008,
   df_cbs2011,
   df_cbs2014,
   df_cbs2019,
-  #df_cgss2010,
-  #df_pku2008,
-  #df_pku2009,
-  #df_css2006,
-  #df_css2017,
-  #df_css2019,
+  df_cgss2010,
+  df_pku2008,
+  df_pku2009,
+  df_css2006,
+  df_css2017,
+  df_css2019,
   df_css2021)
 write.csv(fullData, file = "../data/fullData.csv")
 ## notes:pay attention to the warnings 
@@ -1368,102 +1370,104 @@ css2021_om <- css2021 %>%
 #css2021_om$occR <- as.factor(css2021_om$occR)
 #m.out1 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cbs2014_om,replace = FALSE)
 
-mat_cbs2002 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cbs2002_om,replace = TRUE,ratio = 3)
+mat_cbs2002 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,method = "cem",data = cbs2002_om,replace = TRUE,ratio = 3)
 df_mat_cbs2002 <- match.data(mat_cbs2002)
 ps_mat_cbs2002 <- df_mat_cbs2002$distance
-maf_cbs2002 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cbs2002_om,replace = FALSE,ratio = 3)
+maf_cbs2002 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,method = "cem",data = cbs2002_om,replace = FALSE,ratio = 3)
 df_maf_cbs2002 <- match.data(maf_cbs2002)
 ps_maf_cbs2002 <- df_maf_cbs2002$distance
 
-mat_cbs2008 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cbs2008_om,replace = TRUE,ratio = 3)
+mat_cbs2008 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = cbs2008_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_cbs2008 <- match.data(mat_cbs2008)
 ps_mat_cbs2008 <- df_mat_cbs2008$distance
-maf_cbs2008 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cbs2008_om,replace = FALSE,ratio = 3)
+maf_cbs2008 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = cbs2008_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_cbs2008 <- match.data(maf_cbs2008)
 ps_maf_cbs2008 <- df_maf_cbs2008$distance
 
-mat_cbs2011 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cbs2011_om,replace = TRUE,ratio = 3)
+mat_cbs2011 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = cbs2011_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_cbs2011 <- match.data(mat_cbs2011)
 ps_mat_cbs2011 <- df_mat_cbs2011$distance
-maf_cbs2011 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cbs2011_om,replace = FALSE,ratio = 3)
+maf_cbs2011 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = cbs2011_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_cbs2011 <- match.data(maf_cbs2011)
 ps_maf_cbs2011 <- df_maf_cbs2011$distance
 
-mat_cbs2014 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cbs2014_om,replace = TRUE,ratio = 3)
+mat_cbs2014 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = cbs2014_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_cbs2014 <- match.data(mat_cbs2014)
 ps_mat_cbs2014 <- df_mat_cbs2014$distance
-maf_cbs2014 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cbs2014_om,replace = FALSE,ratio = 3)
+maf_cbs2014 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = cbs2014_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_cbs2014 <- match.data(maf_cbs2014)
 ps_maf_cbs2014 <- df_maf_cbs2014$distance
 
-mat_cbs2019 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cbs2019_om,replace = TRUE,ratio = 3)
+mat_cbs2019 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = cbs2019_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_cbs2019 <- match.data(mat_cbs2019)
 ps_mat_cbs2019 <- df_mat_cbs2019$distance
-maf_cbs2019 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cbs2019_om,replace = FALSE,ratio = 3)
+maf_cbs2019 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = cbs2019_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_cbs2019 <- match.data(maf_cbs2019)
 ps_maf_cbs2019 <- df_maf_cbs2019$distance
 
-mat_cgss2010 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cgss2010_om,replace = TRUE,ratio = 3)
+mat_cgss2010 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = cgss2010_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_cgss2010 <- match.data(mat_cgss2010)
 ps_mat_cgss2010 <- df_mat_cgss2010$distance
-maf_cgss2010 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = cgss2010_om,replace = FALSE,ratio = 3)
+maf_cgss2010 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = cgss2010_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_cgss2010 <- match.data(maf_cgss2010)
 ps_maf_cgss2010 <- df_maf_cgss2010$distance
 
-mat_pku2008 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = pku2008_om,replace = TRUE,ratio = 3)
+mat_pku2008 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = pku2008_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_pku2008 <- match.data(mat_pku2008)
 ps_mat_pku2008 <- df_mat_pku2008$distance
-maf_pku2008 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = pku2008_om,replace = FALSE,ratio = 3)
+maf_pku2008 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = pku2008_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_pku2008 <- match.data(maf_pku2008)
 ps_maf_pku2008 <- df_maf_pku2008$distance
 
-mat_pku2009 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = pku2009_om,replace = TRUE,ratio = 3)
+mat_pku2009 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = pku2009_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_pku2009 <- match.data(mat_pku2009)
 ps_mat_pku2009 <- df_mat_pku2009$distance
-maf_pku2009 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = pku2009_om,replace = FALSE,ratio = 3)
+maf_pku2009 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = pku2009_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_pku2009 <- match.data(maf_pku2009)
 ps_maf_pku2009 <- df_maf_pku2009$distance
 
-mat_css2006 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = css2006_om,replace = TRUE,ratio = 3)
+mat_css2006 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = css2006_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_css2006 <- match.data(mat_css2006)
 ps_mat_css2006 <- df_mat_css2006$distance
-maf_css2006 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = css2006_om,replace = FALSE,ratio = 3)
+maf_css2006 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = css2006_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_css2006 <- match.data(maf_css2006)
 ps_maf_css2006 <- df_maf_css2006$distance
 
-mat_css2017 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = css2017_om,replace = TRUE,ratio = 3)
+mat_css2017 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = css2017_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_css2017 <- match.data(mat_css2017)
 ps_mat_css2017 <- df_mat_css2017$distance
-maf_css2017 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = css2017_om,replace = FALSE,ratio = 3)
+maf_css2017 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = css2017_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_css2017 <- match.data(maf_css2017)
 ps_maf_css2017 <- df_maf_css2017$distance
 
-mat_css2019 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = css2019_om,replace = TRUE,ratio = 3)
+mat_css2019 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = css2019_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_css2019 <- match.data(mat_css2019)
 ps_mat_css2019 <- df_mat_css2019$distance
-maf_css2019 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = css2019_om,replace = FALSE,ratio = 3)
+maf_css2019 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = css2019_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_css2019 <- match.data(maf_css2019)
 ps_maf_css2019 <- df_maf_css2019$distance
 
-mat_css2021 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = css2021_om,replace = TRUE,ratio = 3)
+mat_css2021 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = css2021_om,method = "cem",replace = TRUE,ratio = 3)
 df_mat_css2021 <- match.data(mat_css2021)
 ps_mat_css2021 <- df_mat_css2021$distance
-maf_css2021 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural + race,data = css2021_om,replace = FALSE,ratio = 3)
+maf_css2021 <- matchit(as.factor(identity) ~ age + female + as.factor(edu) + marriage + hukouRural,data = css2021_om,method = "cem",replace = FALSE,ratio = 3)
 df_maf_css2021 <- match.data(maf_css2021)
 ps_maf_css2021 <- df_maf_css2021$distance
 
 ps_matData <- c(ps_mat_cbs2011,ps_mat_cbs2014,ps_mat_cbs2019,ps_mat_pku2008,ps_mat_pku2009,ps_mat_cgss2010,ps_mat_css2006,ps_mat_css2017,ps_mat_css2019,ps_mat_css2021)
 
 matData <- dplyr::bind_rows(
-  #df_mat_cbs2002,
-  df_mat_cbs2008,
+  df_mat_cbs2002,
+  #df_mat_cbs2008,
   df_mat_cbs2011,
   df_mat_cbs2014,
   df_mat_cbs2019,
-  #df_mat_pku2008,
-  #df_mat_cgss2010,
-  #df_mat_css2006,
-  #df_mat_css2017,
+  df_mat_pku2008,
+  df_mat_pku2009,
+  df_mat_cgss2010,
+  df_mat_css2006,
+  df_mat_css2017,
+  #df_mat_css2019,
   df_mat_css2021)
 
 matData <- matData %>%
@@ -1494,13 +1498,17 @@ plot_trust_max_mat <- matData %>%
 
 # without replace
 mafData <- dplyr::bind_rows(
+  df_maf_cbs2002,
+  #df_maf_cbs2008,
   df_maf_cbs2011,
   df_maf_cbs2014,
   df_maf_cbs2019,
   df_maf_pku2008,
-  #df_maf_cgss2010,
-  #df_maf_css2006,
-  #df_maf_css2017,
+  df_maf_pku2009,
+  df_maf_cgss2010,
+  df_maf_css2006,
+  df_maf_css2017,
+  df_maf_css2019,
   df_maf_css2021)
 
 mafData <- mafData %>%
@@ -1520,6 +1528,264 @@ plot_trust_maf <- mafData %>%
 ggsave(plot_trust_maf,file = "../fig/plot_trust_maf.pdf",width = 8)
 ```
 
+## PSM_DID2
+
+```{r psm, warning=FALSE}
+cbs2002_om <- cbs2002 %>%
+  mutate(identity = case_when(
+    cbs2002$occR ==1 & cbs2002$party ==1 ~ "1",
+    cbs2002$occR ==0 & cbs2002$party ==1 ~ "1",
+    cbs2002$occR ==1 & cbs2002$party ==0 ~ "1",
+    cbs2002$occR ==0 & cbs2002$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na()
+
+
+cbs2011_om <- cbs2011 %>%
+  mutate(identity = case_when(
+    cbs2011$occR ==1 & cbs2011$party ==1 ~ "1",
+    cbs2011$occR ==0 & cbs2011$party ==1 ~ "1",
+    cbs2011$occR ==1 & cbs2011$party ==0 ~ "1",
+    cbs2011$occR ==0 & cbs2011$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na()
+
+cbs2014_om <- cbs2014 %>%
+  mutate(identity = case_when(
+    cbs2014$occR ==1 & cbs2014$party ==1 ~ "1",
+    cbs2014$occR ==0 & cbs2014$party ==1 ~ "1",
+    cbs2014$occR ==1 & cbs2014$party ==0 ~ "1",
+    cbs2014$occR ==0 & cbs2014$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na()
+#cbs2014_om$occR <- as.factor(cbs2014_om$occR)
+
+
+
+cbs2019_om <- cbs2019 %>%
+  mutate(identity = case_when(
+    cbs2019$occR ==1 & cbs2019$party ==1 ~ "1",
+    cbs2019$occR ==0 & cbs2019$party ==1 ~ "1",
+    cbs2019$occR ==1 & cbs2019$party ==0 ~ "1",
+    cbs2019$occR ==0 & cbs2019$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na()
+#cbs2019_om$occR <- as.factor(cbs2019_om$occR)
+
+cgss2010_om <- cgss2010 %>%
+  mutate(identity = case_when(
+    cgss2010$occR ==1 & cgss2010$party ==1 ~ "1",
+    cgss2010$occR ==0 & cgss2010$party ==1 ~ "1",
+    cgss2010$occR ==1 & cgss2010$party ==0 ~ "1",
+    cgss2010$occR ==0 & cgss2010$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na()
+#cgss2010_om$occR <- as.factor(cgss2010_om$occR)
+
+pku2008_om <- pku2008 %>%
+  mutate(identity = case_when(
+    pku2008$occR ==1 & pku2008$party ==1 ~ "1",
+    pku2008$occR ==0 & pku2008$party ==1 ~ "1",
+    pku2008$occR ==1 & pku2008$party ==0 ~ "1",
+    pku2008$occR ==0 & pku2008$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na()
+#pku2008_om$occR <- as.factor(pku2008_om$occR)
+
+pku2009_om <- pku2009 %>%
+  mutate(identity = case_when(
+    pku2009$occR ==1 & pku2009$party ==1 ~ "1",
+    pku2009$occR ==0 & pku2009$party ==1 ~ "1",
+    pku2009$occR ==1 & pku2009$party ==0 ~ "1",
+    pku2009$occR ==0 & pku2009$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na() #把含有na的行去掉的时候，每一行都有na。
+#pku2009_om$occR <- as.factor(pku2009_om$occR)
+
+
+css2006_om <- css2006 %>%
+  mutate(identity = case_when(
+    css2006$occR ==1 & css2006$party ==1 ~ "1",
+    css2006$occR ==0 & css2006$party ==1 ~ "1",
+    css2006$occR ==1 & css2006$party ==0 ~ "1",
+    css2006$occR ==0 & css2006$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na()
+#css2006_om$occR <- as.factor(css2006_om$occR)
+
+
+css2017_om <- css2017 %>%
+  mutate(identity = case_when(
+    css2017$occR ==1 & css2017$party ==1 ~ "1",
+    css2017$occR ==0 & css2017$party ==1 ~ "1",
+    css2017$occR ==1 & css2017$party ==0 ~ "1",
+    css2017$occR ==0 & css2017$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na()
+#css2017_om$occR <- as.factor(css2017_om$occR)
+
+css2019_om <- css2019 %>%
+  mutate(identity = case_when(
+    css2019$occR ==1 & css2019$party ==1 ~ "1",
+    css2019$occR ==0 & css2019$party ==1 ~ "1",
+    css2019$occR ==1 & css2019$party ==0 ~ "1",
+    css2019$occR ==0 & css2019$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na() #drop na后只剩下一行
+#css2019_om$occR <- as.factor(css2019_om$occR)
+
+css2021_om <- css2021 %>%
+  mutate(identity = case_when(
+    css2021$occR ==1 & css2021$party ==1 ~ "1",
+    css2021$occR ==0 & css2021$party ==1 ~ "1",
+    css2021$occR ==1 & css2021$party ==0 ~ "1",
+    css2021$occR ==0 & css2021$party ==0 ~ "0",
+    )) %>%
+  dplyr::select(.,year,time,age,female,edu,marriage,hukouRural,identity,trust_goverR,trust_gover_z) %>%
+  drop_na()
+#css2021_om$occR <- as.factor(css2021_om$occR)
+#m.out1 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cbs2014_om,replace = FALSE)
+
+mat_cbs2002 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cbs2002_om,replace = TRUE,ratio = 3)
+df_mat_cbs2002 <- match.data(mat_cbs2002)
+ps_mat_cbs2002 <- df_mat_cbs2014$distance
+maf_cbs2002 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cbs2002_om,replace = FALSE,ratio = 3)
+df_maf_cbs2002 <- match.data(maf_cbs2002)
+ps_maf_cbs2002 <- df_maf_cbs2002$distance
+
+mat_cbs2011 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cbs2011_om,replace = TRUE,ratio = 3)
+df_mat_cbs2011 <- match.data(mat_cbs2011)
+ps_mat_cbs2011 <- df_mat_cbs2014$distance
+maf_cbs2011 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cbs2011_om,replace = FALSE,ratio = 3)
+df_maf_cbs2011 <- match.data(maf_cbs2011)
+ps_maf_cbs2011 <- df_maf_cbs2011$distance
+
+mat_cbs2014 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cbs2014_om,replace = TRUE,ratio = 3)
+df_mat_cbs2014 <- match.data(mat_cbs2014)
+ps_mat_cbs2014 <- df_mat_cbs2014$distance
+maf_cbs2014 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cbs2014_om,replace = FALSE,ratio = 3)
+df_maf_cbs2014 <- match.data(maf_cbs2014)
+ps_maf_cbs2014 <- df_maf_cbs2014$distance
+mat_cbs2019 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cbs2019_om,replace = TRUE,ratio = 3)
+df_mat_cbs2019 <- match.data(mat_cbs2019)
+ps_mat_cbs2019 <- df_mat_cbs2019$distance
+
+maf_cbs2019 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cbs2019_om,replace = FALSE,ratio = 3)
+df_maf_cbs2019 <- match.data(maf_cbs2019)
+ps_maf_cbs2019 <- df_maf_cbs2019$distance
+mat_cgss2010 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cgss2010_om,replace = TRUE,ratio = 3)
+df_mat_cgss2010 <- match.data(mat_cgss2010)
+ps_mat_cgss2010 <- df_mat_cgss2010$distance
+maf_cgss2010 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = cgss2010_om,replace = FALSE,ratio = 3)
+df_maf_cgss2010 <- match.data(maf_cgss2010)
+ps_maf_cgss2010 <- df_maf_cgss2010$distance
+
+mat_pku2008 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = pku2008_om,replace = TRUE,ratio = 3)
+df_mat_pku2008 <- match.data(mat_pku2008)
+ps_mat_pku2008 <- df_mat_pku2008$distance
+maf_pku2008 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = pku2008_om,replace = FALSE,ratio = 3)
+df_maf_pku2008 <- match.data(maf_pku2008)
+ps_maf_pku2008 <- df_maf_pku2008$distance
+mat_pku2009 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = pku2009_om,replace = TRUE,ratio = 3)
+
+df_mat_pku2009 <- match.data(mat_pku2009)
+ps_mat_pku2009 <- df_mat_pku2009$distance
+maf_pku2009 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = pku2009_om,replace = FALSE,ratio = 3)
+df_maf_pku2009 <- match.data(maf_pku2009)
+ps_maf_pku2009 <- df_maf_pku2009$distance
+mat_css2006 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = css2006_om,replace = TRUE,ratio = 3)
+df_mat_css2006 <- match.data(mat_css2006)
+ps_mat_css2006 <- df_mat_css2006$distance
+maf_css2006 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = css2006_om,replace = FALSE,ratio = 3)
+df_maf_css2006 <- match.data(maf_css2006)
+ps_maf_css2006 <- df_maf_css2006$distance
+mat_css2017 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = css2017_om,replace = TRUE,ratio = 3)
+df_mat_css2017 <- match.data(mat_css2017)
+ps_mat_css2017 <- df_mat_css2017$distance
+maf_css2017 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = css2017_om,replace = FALSE,ratio = 3)
+df_maf_css2017 <- match.data(maf_css2017)
+ps_maf_css2017 <- df_maf_css2017$distance
+mat_css2019 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = css2019_om,replace = TRUE,ratio = 3)
+df_mat_css2019 <- match.data(mat_css2019)
+ps_mat_css2019 <- df_mat_css2019$distance
+maf_css2019 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = css2019_om,replace = FALSE,ratio = 3)
+df_maf_css2019 <- match.data(maf_css2019)
+ps_maf_css2019 <- df_maf_css2019$distance
+mat_css2021 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = css2021_om,replace = TRUE,ratio = 3)
+df_mat_css2021 <- match.data(mat_css2021)
+ps_mat_css2021 <- df_mat_css2021$distance
+
+maf_css2021 <- matchit(as.factor(identity) ~ age + female + edu + marriage + hukouRural,data = css2021_om,replace = FALSE,ratio = 3)
+df_maf_css2021 <- match.data(maf_css2021)
+ps_maf_css2021 <- df_maf_css2021$distance
+
+ps_matData <- c(ps_mat_cbs2014,ps_mat_cbs2019,ps_mat_pku2008,ps_mat_pku2009,ps_mat_cgss2010,ps_mat_css2006,ps_mat_css2017,ps_mat_css2019,ps_mat_css2021)
+
+matData <- dplyr::bind_rows(
+  #df_mat_cbs2002,
+  df_mat_cbs2008,
+  df_mat_cbs2011,
+  df_mat_cbs2014,
+  df_mat_cbs2019,
+  #df_mat_pku2008
+  #df_mat_cgss2010,
+  #df_mat_css2006,
+  #df_mat_css2017,
+  df_mat_css2021)
+
+matData <- matData %>%
+  group_by(year,identity) %>%
+  mutate(trust_goverR_mean = mean(trust_goverR)) %>%
+  ungroup()
+matData$year <- as.factor(matData$year)
+
+## Plot
+plot_trust_mat <- matData %>%
+  ggplot(aes(x=year, y=trust_goverR_mean, group = identity, color = identity)) +
+  geom_line() +
+  ylim(.5,1) +
+  xlab("year") +
+  ylab("trust_goverR_mean")+
+  theme_bw()
+ggsave(plot_trust_mat,file = "../fig/plot_trust_mat.pdf",width = 8)
+
+# without replace
+mafData <- dplyr::bind_rows(
+  df_maf_cbs2002,
+  df_maf_cbs2011,
+  df_maf_cbs2014,
+  df_maf_cbs2019,
+  df_maf_pku2008,
+  df_maf_cgss2010,
+  df_maf_css2006,
+  df_maf_css2017,
+  df_maf_css2021)
+
+mafData <- mafData %>%
+  group_by(year,identity) %>%
+  mutate(trust_goverR_mean = mean(trust_goverR)) %>%
+  ungroup()
+mafData$year <- as.factor(mafData$year)
+
+## Plot
+plot_trust_maf <- mafData %>%
+  ggplot(aes(x=year, y=trust_goverR_mean, group = identity, color = identity)) +
+  geom_line() +
+  xlab("year") +
+  ylab("trust_goverR_mean")+
+  theme_bw()
+ggsave(plot_trust_maf,file = "../fig/plot_trust_maf.pdf",width = 8)
+```
 
 ## balanceCheck
 
@@ -1541,12 +1807,28 @@ love.plot(mat_cbs2014,
           line = FALSE)
 ```
 
-## DID
+##DID
 
 ```{r did}
-did_mat <- glm(as.factor(trust_goverR) ~ identity + time + identity * time + arm:::rescale(age) + hukouRural + female + as.factor(edu) + marriage + race, data = matData, family = quasibinomial, weights = weights)
+did_mat <- glm(as.factor(trust_goverR) ~ identity + time + identity * time + arm:::rescale(age) + hukouRural + female + as.factor(edu) + marriage, data = matData, family = quasibinomial, weights = weights)
 
 didreg01a <- glm(as.factor(trust_goverR)  ~ identity * time + age + hukouRural + female + edu + marriage, data = matData, family = quasibinomial, weights = weights)
+
+ps1 <- cut(ps_matData[matData$identity == 1], breaks = seq(0, 1, by = 0.1), labels = 1:10)
+ps0 <- cut(ps_matData[matData$identity == 0], breaks = seq(0, 1, by = 0.1), labels = 1:10)
+par(mar = c(3, 3, 3, 0.5), mgp = c(1.5, 0.1, 0), tcl = -0.2)
+plot(
+  x = 0, y = 0, xlim = c(0, 10), ylim = c(-1000, 1000), type = "n", axes = FALSE, xlab = "Propensity scores", ylab = "Frequencies",
+  main = "Distribution of Propensity Scores\n(1 vs 3 Matching)"
+)
+abline(h = 0, lwd = 0.5)
+rect(xleft = seq(0, 9, by = 1), xright = seq(1, 10, by = 1), ybottom = 0, ytop = table(ps1), col = "gray", lwd = 0.5)
+rect(xleft = seq(0, 9, by = 1), xright = seq(1, 10, by = 1), ybottom = 0, ytop = table(ps0) * -1, lwd = 0.5)
+axis(2, c(-1000, -500, 0, 500, 1000), abs(c(-1000, -500, 0, 500, 1000)), cex.axis = 0.8)
+axis(1, seq(0, 10, by = 1), seq(0, 1, by = .1), cex.axis = 0.8)
+box()
+legend("bottomright", legend = c("treated", "untreated"), col = c("gray", "black"), pch = c(15, 22), cex = 0.8)
+dev.off()
 ```
 
 # dataDescription
@@ -1682,6 +1964,288 @@ glm_inter <- glm(as.factor(trust_goverR) ~ occR + time + occR * time + age + fem
 ## outputs
 msummary(list(glm_ctr,glm_inter),
          output="../outputs/regression.docx",
+         stars = TRUE,
+         coef_rename = ls_ctrl)
+```
+
+
+
+# Newdata
+
+## css2019
+```{r css2019}
+css2019_new <- read_sav("../data/newdata/css2019.sav") %>%
+  mutate(year = 2019,
+         wave = 4) %>%
+  select(.,uid,体制深度,体制内外) %>%
+  dplyr::rename(workLevel = "体制深度",
+                work = "体制内外")
+
+css2019_raw <- read.csv("../dataclean/css2019.csv") 
+css2019_raw <- css2019_raw %>%
+  dplyr::mutate(identity = case_when(
+    css2019_raw$occR ==1 & css2019_raw$party ==1 ~ "1",
+    css2019_raw$occR ==0 & css2019_raw$party ==0 ~ "0")) %>%
+  dplyr::rename(trust_gov_Maxdummy = trust_gover_max)
+
+css2019_raw$edu_dummy <- Recode(css2019_raw$a1d1,"1:6 = 0; 7:9 = 1; 10:12 = NA")
+
+
+css2019 <- merge(css2019_raw,css2019_new,by.x = "id", by.y="uid", all.x=TRUE) %>%
+  select(.,id,wave,year,time,province,age,corhort,female,hukouRural,race,marriage,edu,edu_dummy,party,occ,occR,workLevel,work,identity,trust_gover,trust_gover_z,trust_goverR,trust_gov_Maxdummy,trust_court,trust_courtR,trust_court_z,occ_parterR,occ_father_past,occ_father_pastR)
+  
+```
+## newdata and dataCombine
+```{r newdata}
+newdata <- read_sav("../data/newdata/newdata.sav") %>%
+  rename(workLevel = "体制深度",
+         work = "体制内外") %>%
+  subset(., year != '2019' | wave != '4') 
+
+common <- intersect(colnames(newdata),colnames(css2019))
+
+newData <- rbind(
+  css2019[common],
+  newdata[common]
+)
+
+newData$female <- Recode(newData$female,"8 = NA") 
+newData <- newData %>%
+  select(.,-c(occ_parterR,occ_father_past,occ_father_pastR))
+write.csv(newData,file = "../data/newData.csv")
+
+
+```
+
+
+## timeTrend for newData
+
+```{r timeTrend}
+newData <- newData %>%
+  mutate(treat = case_when(
+    newData$work ==1 & newData$party ==1 ~ "1",
+    newData$work ==0 & newData$party ==0 ~ "0",
+    ))
+
+newData_on <- newData %>%
+  group_by(year,treat) %>%
+  mutate(trust_goverR_mean = mean(trust_goverR,na.rm = TRUE),
+         trust_gover_z_mean = mean(trust_gover_z,na.rm = TRUE),
+         trust_gover_max_mean = mean(trust_gov_Maxdummy,na.rm = TRUE)) %>%
+  ungroup() %>%
+  drop_na()
+newData_on$year <- as.factor(newData_on$year)
+
+   
+plot_trust_new <- newData_on %>%
+  ggplot(aes(x=year, y=trust_goverR_mean, group = treat, color = treat)) +
+  geom_line() +
+  ylim(0.5,1) +
+  xlab("year") +
+  ylab("trust_goverR_mean")+
+  theme_bw()
+
+plot_trust_z_new <- newData_on %>%
+  ggplot(aes(x=year, y=trust_gover_z_mean, group = treat, color = treat)) +
+  geom_line() +
+  ylim(0.3,1) +
+  xlab("year") +
+  ylab("trust_gover_z_mean")+
+  theme_bw()
+
+plot_trust_max_new <- newData_on %>%
+  ggplot(aes(x=year, y=trust_gover_max_mean, group = treat, color = treat)) +
+  geom_line() +
+  ylim(0,1) +
+  xlab("year") +
+  ylab("trust_gover_max_mean")+
+  theme_bw()
+
+
+```
+
+
+## PSM for newData
+```{r psm_Newdata}
+mat_newData <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = newData_on,replace = TRUE,ratio = 3)
+df_mat_newData <- match.data(mat_newData)
+ps_mat_newData <- df_mat_newData$distance
+
+cem_newData <- matchit(treat ~ age + female + edu + marriage + hukouRural,method = "cem",data = newData_on)
+df_cem_newData <- match.data(cem_newData)
+
+# plot
+plot_trust_matNew <- df_mat_newData %>%
+  ggplot(aes(x=year, y=trust_goverR_mean, group = treat, color = treat)) +
+  geom_line() +
+  ylim(0.5,1) +
+  xlab("year") +
+  ylab("trust_goverR_mean")+
+  theme_bw()
+
+plot_trust_z_matNew <- df_mat_newData %>%
+  ggplot(aes(x=year, y=trust_gover_z_mean, group = treat, color = treat)) +
+  geom_line() +
+  ylim(0.5,1) +
+  xlab("year") +
+  ylab("trust_gover_z_mean")+
+  theme_bw()
+
+plot_trust_max_mat <- df_mat_newData %>%
+  ggplot(aes(x=year, y=trust_gover_max_mean, group = treat, color = treat)) +
+  geom_line() +
+  ylim(0,1) +
+  xlab("year") +
+  ylab("trust_gover_max_mean")+
+  theme_bw()
+
+```
+
+
+
+
+## DID for newData
+
+```{r did}
+## varibale_list
+ls_ctrl <- c(
+   "treat:time" = "treat * Time",
+   "treat" = "Treat" ,
+   "time" = "Time",
+   "age" = "Age",
+   "female" = "Gender",
+   "marriage" = "Marriage",
+   "edu" = "Education",
+   "party" = "Partymember",
+   "hukouRural" = "Residence"
+)
+
+glm_newData <- glm(as.factor(trust_goverR) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = newData, family = quasibinomial)
+
+lm_newData <- lm(trust_gover_z ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = newData)
+
+glm_newData_max <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = newData, family = quasibinomial)
+
+did_matNewr <- glm(as.factor(trust_goverR) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = df_mat_newData,family = quasibinomial,weights = weights)
+
+did_matNewz <- lm(trust_gover_z ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = df_mat_newData)
+
+did_matNewm <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = df_mat_newData, family = quasibinomial)
+
+did_cemNewr <- glm(as.factor(trust_goverR) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = df_cem_newData,family = quasibinomial,weights = weights)
+
+did_cemNewz <- lm(trust_gover_z ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = df_cem_newData)
+
+did_cemNewm <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = df_cem_newData, family = quasibinomial)
+
+
+## outputs
+msummary(list(glm_newData,did_matNewr,did_cemNewr,lm_newData,did_matNewz,did_cemNewz,glm_newData_max,did_matNewm,did_cemNewm),
+         output="../outputs/regression.docx",
+         stars = TRUE)
+```
+
+
+## party and edu
+```{r party and edu_dummy}
+newData <- rbind(
+  css2019[common],
+  newdata[common]
+)
+
+newData <- newData %>%
+  mutate(treatPe = case_when(
+    newData$edu_dummy ==1 & newData$party ==1 ~ "1",
+    newData$edu_dummy ==0 & newData$party ==0 ~ "0",
+    ))
+
+newdataPe_on <- newData %>%
+  group_by(year,treatPe) %>%
+  mutate(trust_goverR_mean = mean(trust_goverR,na.rm = TRUE),
+         trust_gover_z_mean = mean(trust_gover_z,na.rm = TRUE),
+         trust_gover_max_mean = mean(trust_gov_Maxdummy,na.rm = TRUE)) %>%
+  ungroup() %>%
+  drop_na()
+newdataPe_on$year <- as.factor(newdataPe_on$year)
+
+plot_trustPe_new <- newdataPe_on %>%
+  ggplot(aes(x=year, y=trust_goverR_mean, group = treatPe, color = treatPe)) +
+  geom_line() +
+  ylim(0.5,1) +
+  xlab("year") +
+  ylab("trust_goverR_mean")+
+  theme_bw()
+
+plot_trustPe_z_new <- newdataPe_on %>%
+  ggplot(aes(x=year, y=trust_gover_z_mean, group = treatPe, color = treatPe)) +
+  geom_line() +
+  ylim(0.3,1) +
+  xlab("year") +
+  ylab("trust_gover_z_mean")+
+  theme_bw()
+
+plot_trustPe_max_new <- newdataPe_on %>%
+  ggplot(aes(x=year, y=trust_gover_max_mean, group = treatPe, color = treatPe)) +
+  geom_line() +
+  ylim(0,1) +
+  xlab("year") +
+  ylab("trust_gover_max_mean")+
+  theme_bw()
+
+## matching
+
+mat_newdataPe <- matchit(as.factor(treatPe) ~ age + female + marriage + hukouRural + work,data = newdataPe_on,replace = FALSE,ratio = 3)
+df_mat_newdataPe <- match.data(mat_newdataPe)
+ps_mat_newdataPe <- df_mat_newdataPe$distance
+
+cem_newdataPe <- matchit(treatPe ~ age + female + marriage + hukouRural + work,method = "cem",data = newdataPe_on)
+df_cem_newdataPe <- match.data(cem_newdataPe)
+
+plot_trustPe_r_mat <- df_mat_newdataPe %>%
+  ggplot(aes(x=year, y=trust_goverR_mean, group = treatPe, color = treatPe)) +
+  geom_line() +
+  ylim(0.3,1) +
+  xlab("year") +
+  ylab("trust_gover_z_mean")+
+  theme_bw()
+
+plot_trustPe_z_mat <- df_mat_newdataPe %>%
+  ggplot(aes(x=year, y=trust_gover_z_mean, group = treatPe, color = treatPe)) +
+  geom_line() +
+  ylim(0.3,1) +
+  xlab("year") +
+  ylab("trust_gover_z_mean")+
+  theme_bw()
+
+plot_trustPe_max_mat <- df_mat_newdataPe %>%
+  ggplot(aes(x=year, y=trust_gover_max_mean, group = treatPe, color = treatPe)) +
+  geom_line() +
+  ylim(0,1) +
+  xlab("year") +
+  ylab("trust_gover_max_mean")+
+  theme_bw()
+
+## regression
+glm_Pe <- glm(as.factor(trust_goverR) ~ treatPe + time + treatPe * time + age + hukouRural + female + marriage + work, data = newData,family = quasibinomial)
+
+did_Per <- glm(as.factor(trust_goverR) ~ treatPe + time + treatPe * time + age + hukouRural + female + marriage + work, data = df_mat_newdataPe,family = quasibinomial,weights = weights)
+
+cem_Per <- glm(as.factor(trust_goverR) ~ treatPe + time + treatPe * time + age + hukouRural + female + marriage + work, data = df_cem_newdataPe,family = quasibinomial,weights = weights)
+
+lm_Pe <- lm(trust_gover_z ~ treatPe + time + treatPe * time + age + hukouRural + female + marriage + work, data = newData)
+
+did_Pez <- lm(trust_gover_z ~ treatPe + time + treatPe * time + age + hukouRural + female + marriage + work, data = df_mat_newdataPe,weights = weights)
+
+cem_Pez <- lm(trust_gover_z ~ treatPe + time + treatPe * time + age + hukouRural + female + marriage + work, data = df_cem_newdataPe,weights = weights)
+
+glm_Pem <- glm(as.factor(trust_gov_Maxdummy) ~ treatPe + time + treatPe * time + age + hukouRural + female + marriage + work, data = newData,family = quasibinomial)
+
+did_Pem <- glm(as.factor(trust_gov_Maxdummy) ~ treatPe + time + treatPe * time + age + hukouRural + female  + marriage + work, data = df_mat_newdataPe,family = quasibinomial,weights = weights)
+
+cem_Pem <- glm(as.factor(trust_gov_Maxdummy) ~ treatPe + time + treatPe * time + age + hukouRural + female + marriage + work, data = df_cem_newdataPe,family = quasibinomial,weights = weights)
+
+msummary(list(glm_Pe,did_Per,cem_Per,lm_Pe,did_Pez,cem_Pez,glm_Pem,did_Pem,cem_Pem),
+         output="../outputs/regressionPe.docx",
          stars = TRUE,
          coef_rename = ls_ctrl)
 ```
