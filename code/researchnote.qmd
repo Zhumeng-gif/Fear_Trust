@@ -1100,8 +1100,6 @@ write.csv(css2021,file = "../dataclean/css2021.csv")
 
 ```
 
-
-
 # dataCombine for all variable
 
 ```{r full_data, warning=FALSE, echo=FALSE}
@@ -1807,29 +1805,6 @@ love.plot(mat_cbs2014,
           line = FALSE)
 ```
 
-##DID
-
-```{r did}
-did_mat <- glm(as.factor(trust_goverR) ~ identity + time + identity * time + arm:::rescale(age) + hukouRural + female + as.factor(edu) + marriage, data = matData, family = quasibinomial, weights = weights)
-
-didreg01a <- glm(as.factor(trust_goverR)  ~ identity * time + age + hukouRural + female + edu + marriage, data = matData, family = quasibinomial, weights = weights)
-
-ps1 <- cut(ps_matData[matData$identity == 1], breaks = seq(0, 1, by = 0.1), labels = 1:10)
-ps0 <- cut(ps_matData[matData$identity == 0], breaks = seq(0, 1, by = 0.1), labels = 1:10)
-par(mar = c(3, 3, 3, 0.5), mgp = c(1.5, 0.1, 0), tcl = -0.2)
-plot(
-  x = 0, y = 0, xlim = c(0, 10), ylim = c(-1000, 1000), type = "n", axes = FALSE, xlab = "Propensity scores", ylab = "Frequencies",
-  main = "Distribution of Propensity Scores\n(1 vs 3 Matching)"
-)
-abline(h = 0, lwd = 0.5)
-rect(xleft = seq(0, 9, by = 1), xright = seq(1, 10, by = 1), ybottom = 0, ytop = table(ps1), col = "gray", lwd = 0.5)
-rect(xleft = seq(0, 9, by = 1), xright = seq(1, 10, by = 1), ybottom = 0, ytop = table(ps0) * -1, lwd = 0.5)
-axis(2, c(-1000, -500, 0, 500, 1000), abs(c(-1000, -500, 0, 500, 1000)), cex.axis = 0.8)
-axis(1, seq(0, 10, by = 1), seq(0, 1, by = .1), cex.axis = 0.8)
-box()
-legend("bottomright", legend = c("treated", "untreated"), col = c("gray", "black"), pch = c(15, 22), cex = 0.8)
-dev.off()
-```
 
 # dataDescription
 
@@ -1968,11 +1943,10 @@ msummary(list(glm_ctr,glm_inter),
          coef_rename = ls_ctrl)
 ```
 
-
-
 # Newdata
 
 ## css2019
+
 ```{r css2019}
 css2019_new <- read_sav("../data/newdata/css2019.sav") %>%
   mutate(year = 2019,
@@ -1989,13 +1963,13 @@ css2019_raw <- css2019_raw %>%
   dplyr::rename(trust_gov_Maxdummy = trust_gover_max)
 
 css2019_raw$edu_dummy <- Recode(css2019_raw$a1d1,"1:6 = 0; 7:9 = 1; 10:12 = NA")
-
-
 css2019 <- merge(css2019_raw,css2019_new,by.x = "id", by.y="uid", all.x=TRUE) %>%
   select(.,id,wave,year,time,province,age,corhort,female,hukouRural,race,marriage,edu,edu_dummy,party,occ,occR,workLevel,work,identity,trust_gover,trust_gover_z,trust_goverR,trust_gov_Maxdummy,trust_court,trust_courtR,trust_court_z,occ_parterR,occ_father_past,occ_father_pastR)
   
 ```
+
 ## newdata and dataCombine
+
 ```{r newdata}
 newdata <- read_sav("../data/newdata/newdata.sav") %>%
   rename(workLevel = "体制深度",
@@ -2016,7 +1990,6 @@ write.csv(newData,file = "../data/newData.csv")
 
 
 ```
-
 
 ## timeTrend for newData
 
@@ -2064,15 +2037,94 @@ plot_trust_max_new <- newData_on %>%
 
 ```
 
-
 ## PSM for newData
-```{r psm_Newdata}
-mat_newData <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = newData_on,replace = TRUE,ratio = 3)
-df_mat_newData <- match.data(mat_newData)
-ps_mat_newData <- df_mat_newData$distance
 
-cem_newData <- matchit(treat ~ age + female + edu + marriage + hukouRural,method = "cem",data = newData_on)
-df_cem_newData <- match.data(cem_newData)
+### n-least
+
+```{r psm_NewData}
+df_cbs2002n <- newData_on %>%
+  filter(year == 2002)
+df_cbs2008n <- newData_on %>%
+  filter(year == 2008 & wave == 1)
+df_cbs2011n <- newData_on %>%
+  filter(year == 2011)
+df_cbs2014n <- newData_on %>%
+  filter(year == 2014)
+df_cbs2019n <- newData_on %>%
+  filter(year == 2019 & wave == 1)
+df_cgss2010n <- newData_on %>%
+  filter(year == 2010)
+df_pku2008n <- newData_on %>%
+  filter(year == 2008 & wave == 2)
+df_pku2009n <- newData_on %>%
+  filter(year == 2009)
+df_css2006n <- newData_on %>%
+  filter(year == 2006)
+df_css2017n <- newData_on %>%
+  filter(year == 2017)
+df_css2019n <- newData_on %>%
+  filter(year == 2019 & wave == 4)
+df_css2021n <- newData_on %>%
+  filter(year == 2021)
+
+mat_cbs2002n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_cbs2002n,replace = TRUE,ratio = 3)
+df_mat_cbs2002n <- match.data(mat_cbs2002n)
+ps_mat_cbs2002n <- df_mat_cbs2002n$distance
+
+mat_cbs2008n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_cbs2008n,replace = TRUE,ratio = 3)
+df_mat_cbs2008n <- match.data(mat_cbs2008n)
+ps_mat_cbs2008n <- df_mat_cbs2008n$distance
+
+mat_cbs2011n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_cbs2011n,replace = TRUE,ratio = 3)
+df_mat_cbs2011n <- match.data(mat_cbs2011n)
+ps_mat_cbs2011n <- df_mat_cbs2011n$distance
+
+mat_cbs2014n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_cbs2014n,replace = TRUE,ratio = 3)
+df_mat_cbs2014n <- match.data(mat_cbs2014n)
+ps_mat_cbs2014n <- df_mat_cbs2014n$distance
+
+mat_cbs2019n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_cbs2019n,replace = TRUE,ratio = 3)
+df_mat_cbs2019n <- match.data(mat_cbs2019n)
+ps_mat_cbs2019n <- df_mat_cbs2019n$distance
+
+mat_cgss2010n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_cgss2010n,replace = TRUE,ratio = 3)
+df_mat_cgss2010n <- match.data(mat_cgss2010n)
+ps_mat_cgss2010n <- df_mat_cgss2010n$distance
+
+mat_pku2008n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_pku2008n,replace = TRUE,ratio = 3)
+df_mat_pku2008n <- match.data(mat_pku2008n)
+ps_mat_pku2008n <- df_mat_pku2008n$distance
+#mat_pku2009n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_pku2009n,replace = TRUE,ratio = 3)
+mat_css2006n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_css2006n,replace = TRUE,ratio = 3)
+df_mat_css2006n <- match.data(mat_css2006n)
+ps_mat_css2006n <- df_mat_css2006n$distance
+
+mat_css2017n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_css2017n,replace = TRUE,ratio = 3)
+df_mat_css2017n <- match.data(mat_css2017n)
+ps_mat_css2017n <- df_mat_css2017n$distance
+
+mat_css2019n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_css2019n,replace = TRUE,ratio = 3)
+df_mat_css2019n <- match.data(mat_css2019n)
+ps_mat_css2019n <- df_mat_css2019n$distance
+
+mat_css2021n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,data = df_css2021n,replace = TRUE,ratio = 3)
+df_mat_css2021n <- match.data(mat_css2021n)
+ps_mat_css2021n <- df_mat_css2021n$distance
+
+df_mat_newData <- dplyr::bind_rows(
+  df_mat_cbs2002n,
+  #df_mat_cbs2008,
+  df_mat_cbs2011n,
+  df_mat_cbs2014n,
+  df_mat_cbs2019n,
+  df_mat_pku2008n,
+  #df_mat_pku2009n,
+  df_mat_cgss2010n,
+  df_mat_css2006n,
+  df_mat_css2017n,
+  #df_mat_css2019n,
+  df_mat_css2021n)
+
 
 # plot
 plot_trust_matNew <- df_mat_newData %>%
@@ -2101,10 +2153,61 @@ plot_trust_max_mat <- df_mat_newData %>%
 
 ```
 
+### cem
 
+```{r cem_NewData}
+cem_cbs2002n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_cbs2002n)
+df_cem_cbs2002n <- match.data(cem_cbs2002n)
+
+cem_cbs2008n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_cbs2008n)
+df_cem_cbs2008n <- match.data(cem_cbs2008n)
+
+cem_cbs2011n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_cbs2011n)
+df_cem_cbs2011n <- match.data(cem_cbs2011n)
+
+cem_cbs2014n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_cbs2014n)
+df_cem_cbs2014n <- match.data(cem_cbs2014n)
+
+cem_cbs2019n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_cbs2019n)
+df_cem_cbs2019n <- match.data(cem_cbs2019n)
+
+cem_cgss2010n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_cgss2010n)
+df_cem_cgss2010n <- match.data(cem_cgss2010n)
+
+cem_pku2008n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_pku2008n)
+df_cem_pku2008n <- match.data(cem_pku2008n)
+
+cem_css2006n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_css2006n)
+df_cem_css2006n <- match.data(cem_css2006n)
+
+cem_css2017n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_css2017n)
+df_cem_css2017n <- match.data(cem_css2017n)
+
+cem_css2019n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_css2019n)
+df_cem_css2019n <- match.data(cem_css2019n)
+
+cem_css2021n <- matchit(as.factor(treat) ~ age + female + edu + marriage + hukouRural,method = "cem",data = df_css2021n)
+df_cem_css2021n <- match.data(cem_css2021n)
+
+df_cem_newData <- dplyr::bind_rows(
+  df_cem_cbs2002n,
+  #df_cem_cbs2008,
+  df_cem_cbs2011n,
+  df_cem_cbs2014n,
+  #df_cem_cbs2019n,
+  df_cem_pku2008n,
+  #df_cem_pku2009n,
+  df_cem_cgss2010n,
+  df_cem_css2006n,
+  df_cem_css2017n,
+  df_cem_css2019n,
+  df_cem_css2021n)
+
+```
 
 
 ## DID for newData
+
 
 ```{r did}
 ## varibale_list
@@ -2145,8 +2248,8 @@ msummary(list(glm_newData,did_matNewr,did_cemNewr,lm_newData,did_matNewz,did_cem
          stars = TRUE)
 ```
 
-
 ## party and edu
+
 ```{r party and edu_dummy}
 newData <- rbind(
   css2019[common],
