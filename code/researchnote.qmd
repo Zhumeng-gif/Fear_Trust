@@ -2211,7 +2211,8 @@ newData <- newData %>%
   mutate(treat = case_when(
     newData$work ==1 & newData$party ==1 ~ "1",
     newData$work ==0 & newData$party ==0 ~ "0",
-    ))
+    )) %>%
+  filter(.,year != 2019 | wave != 1)
 
 newData_on <- newData %>%
   group_by(year,treat) %>%
@@ -2368,6 +2369,11 @@ plot_trust_max_mat <- df_mat_newData %>%
   theme_bw()
 
 ```
+### balanceCheck
+```{r balancecheck}
+
+```
+
 
 ### cem
 
@@ -2421,6 +2427,7 @@ df_cem_newData <- dplyr::bind_rows(
 
 ```
 
+
 ## DID for newData
 
 ```{r did}
@@ -2440,19 +2447,19 @@ ls_ctrl <- c(
 
 glm_newData <- glm(as.factor(trust_goverR) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = newData, family = quasibinomial)
 
-glm_newDatain <- glm(as.factor(trust_goverR) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage + incomeFaml, data = newData, family = quasibinomial)
+#glm_newDatain <- glm(as.factor(trust_goverR) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage + incomeFaml, data = newData, family = quasibinomial)
 
-lm_newData <- lm(trust_gover_z ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = newData)
+#lm_newData <- lm(trust_gover_z ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = newData)
 
-lm_newDatain <- lm(trust_gover_z ~ treat + time + treat * time + age + hukouRural + female + edu + marriage + incomeFaml, data = newData)
+#lm_newDatain <- lm(trust_gover_z ~ treat + time + treat * time + age + hukouRural + female + edu + marriage + incomeFaml, data = newData)
 
 glm_newData_max <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = newData, family = quasibinomial)
 
-glm_newData_maxin <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage + incomeFaml, data = newData, family = quasibinomial)
+#glm_newData_maxin <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage + incomeFaml, data = newData, family = quasibinomial)
 
 did_matNewr <- glm(as.factor(trust_goverR) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = df_mat_newData,family = quasibinomial,weights = weights)
 
-did_matNewz <- lm(trust_gover_z ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = df_mat_newData,weights = weights)
+#did_matNewz <- lm(trust_gover_z ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = df_mat_newData,weights = weights)
 
 did_matNewm <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = df_mat_newData, family = quasibinomial,weights = weights)
 
@@ -2464,8 +2471,8 @@ did_matNewm <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time +
 
 
 ## outputs
-msummary(list(glm_newData,did_matNewr,lm_newDatain,did_matNewz,glm_newData_max,glm_newData_maxin,did_matNewm),
-         output="../outputs/regression2.docx",
+msummary(list(glm_newData,did_matNewr,glm_newData_max,did_matNewm),
+         output="../outputs/regression10.docx",
          stars = TRUE)
 ```
 
@@ -2507,7 +2514,7 @@ boot_fun <- function(data, i) {
   df_mat_css2021n)
   #Fit outcome model
   fit <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time + age + hukouRural + female + edu + marriage, data = md, family = quasibinomial(),weights = weights)
-  betas <- rbind(betas, coef(fit))
+  betas <- rbind(betas, coef(fit)[9])
   #p <- rbind(p,summary(fit)$coefficients[,4])
   ## G-computation ##
   #Subset to treated units for ATT; skip for ATE
@@ -2531,15 +2538,80 @@ boot_fun <- function(data, i) {
 
 library("boot")
 set.seed(1206)
-newData_on$treat <- as.numeric(newData_on$treat)
 boot_out <- boot(newData_on, boot_fun, R = 1000)
-
 boot_out
 boot.ci(boot_out,type = "perc")
-plot(boot_out,index = 9)
+data <- as.data.frame(boot_out[["t"]]) %>%
+  rename(estimate = V1)
+beta0 <- coef(did_matNewm)[9]
+pdf("../fig/fig_placebo.pdf", width = 4, height = 3)
+par(mar = c(3, 3, 1, 1), mgp = c(1.5, 0.2, 0))
+hist(data$estimate,
+  xlab = "The DID estimates", freq = FALSE,
+  xaxs = "i", yaxs = "i", ylim = c(0, 2), main = "", col = "lightgray", border = "white",
+  nclass = 15
+)
+abline(v = boot_out[1], col = 1, lty = 1) 
+abline(v = beta0, col = 1, lty = 2) 
+lines(density(data$estimate), col = "black")
+dev.off()
 ```
 
+# CSS
+```{r css}
+cssdata <- newData %>%
+  filter(., wave == 4)
+cssdata_on <- cssdata %>%
+  drop_na()
 
+## matching
+
+df_css2006o <- cssdata_on %>%
+  filter(year == 2006)
+df_css2017o <- cssdata_on %>%
+  filter(year == 2017)
+df_css2019o <- cssdata_on %>%
+  filter(year == 2019)
+df_css2021o <- cssdata_on %>%
+  filter(year == 2021)
+
+mat_css2006o <- matchit(as.factor(treat) ~ age + female + marriage + hukouRural,data = df_css2006o,replace = TRUE,ratio = 3)
+df_mat_css2006o <- match.data(mat_css2006o)
+ps_mat_css2006o <- df_mat_css2006o$distance
+
+mat_css2017o <- matchit(as.factor(treat) ~ age + female + marriage + hukouRural,data = df_css2017o,replace = TRUE,ratio = 3)
+df_mat_css2017o <- match.data(mat_css2017o)
+ps_mat_css2017o <- df_mat_css2017o$distance
+
+mat_css2019o <- matchit(as.factor(treat) ~ age + female + marriage + hukouRural,data = df_css2019o,replace = TRUE,ratio = 3)
+df_mat_css2019o <- match.data(mat_css2019o)
+ps_mat_css2019o <- df_mat_css2019o$distance
+
+mat_css2021o <- matchit(as.factor(treat) ~ age + female + marriage + hukouRural,data = df_css2021o,replace = TRUE,ratio = 3)
+df_mat_css2021o <- match.data(mat_css2021o)
+ps_mat_css2021o <- df_mat_css2021o$distance
+
+
+# combine
+df_mat_css <- dplyr::bind_rows(
+  df_mat_css2006o,
+  df_mat_css2017o,
+  df_mat_css2019o,
+  df_mat_css2021o
+  )
+df_mat_css$year <- as.factor(df_mat_css$year)
+
+
+## regression
+glm_css <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time + age + hukouRural + female + marriage, data = cssdata,family = quasibinomial)
+
+did_css <- glm(as.factor(trust_gov_Maxdummy) ~ treat + time + treat * time + age + hukouRural + female  + marriage, data = df_mat_css,family = quasibinomial,weights = weights)
+
+msummary(list(glm_css,did_css),
+         output="../outputs/regression_css1.docx",
+         stars = TRUE,
+         coef_rename = ls_ctrl)
+```
 # Alternative IV
 
 ## party or work
