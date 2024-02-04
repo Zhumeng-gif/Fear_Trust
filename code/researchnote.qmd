@@ -2369,11 +2369,12 @@ plot_trust_max_mat <- df_mat_newData %>%
   theme_bw()
 
 ```
+
 ### balanceCheck
+
 ```{r balancecheck}
 
 ```
-
 
 ### cem
 
@@ -2426,7 +2427,6 @@ df_cem_newData <- dplyr::bind_rows(
   df_cem_css2021n)
 
 ```
-
 
 ## DID for newData
 
@@ -2558,6 +2558,7 @@ dev.off()
 ```
 
 # CSS
+
 ```{r css}
 cssdata <- newData %>%
   filter(., wave == 4)
@@ -2612,6 +2613,7 @@ msummary(list(glm_css,did_css),
          stars = TRUE,
          coef_rename = ls_ctrl)
 ```
+
 # Alternative IV
 
 ## party or work
